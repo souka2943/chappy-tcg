@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ちゃっぴーTCG</title>
+<style>
+body{background:#10192c;color:white;font-family:sans-serif;padding:16px}
+h1{font-size:25px}
+section{background:#20314c;padding:16px;border-radius:14px;margin:14px 0}
+button{padding:13px;margin:5px;border:0;border-radius:10px;background:#ffd063;color:#222;font-size:16px}
+.card{background:#354e70;padding:15px;border-radius:10px;margin:8px 0}
+#log{color:#ffd063}
+</style>
+</head>
+<body>
+<h1>⚡ちゃっぴーTCG β0.4</h1>
+<p>進化システム動作テスト</p>
+<section>
+<h2 id="turn">現在の番：1</h2>
+<button onclick="nextTurn()">次の番へ</button>
+<button onclick="reset()">最初から</button>
+</section>
+<section>
+<h2>自分の場</h2>
+<div id="field"></div>
+</section>
+<section>
+<h2>手札</h2>
+<div id="hand"></div>
+</section>
+<section>
+<h2>判定ログ</h2>
+<p id="log">進化カードをタップしてね！</p>
+</section>
+<script>
+let turn=1;
+let pokemon;
+let hand;
+function reset(){
+ turn=1;
+ pokemon={name:"パモ",stage:0,placed:1,evolved:-1};
+ hand=[
+ {name:"パモット",stage:1,from:"パモ"},
+ {name:"パーモット",stage:2,from:"パモット"}
+ ];
+ show();
+ log("テスト開始！");
+}
+function log(message){
+ document.getElementById("log").textContent=message;
+}
+function show(){
+ document.getElementById("turn").textContent="現在の番："+turn;
+ document.getElementById("field").innerHTML=
+ '<div class="card">⚡'+pokemon.name+
+ '（'+["たね","1進化","2進化"][pokemon.stage]+'）</div>';
+ document.getElementById("hand").innerHTML="";
+ hand.forEach((card,i)=>{
+  const b=document.createElement("button");
+  b.textContent=card.name+"へ進化";
+  b.onclick=()=>evolve(i);
+  document.getElementById("hand").appendChild(b);
+ });
+}
+function evolve(i){
+ const card=hand[i];
+ if(turn===1){
+  log("❌ 最初の番は進化できないよ！");
+  return;
+ }
+ if(pokemon.placed===turn||pokemon.evolved===turn){
+  log("❌ この番に場に出した・進化したポケモンは進化できないよ！");
+  return;
+ }
+ if(card.from!==pokemon.name||card.stage!==pokemon.stage+1){
+  log("❌ 進化元が一致しないよ！");
+  return;
+ }
+ pokemon.name=card.name;
+ pokemon.stage=card.stage;
+ pokemon.evolved=turn;
+ hand.splice(i,1);
+ show();
+ log("✅ "+card.name+"への進化成功！");
+}
+function nextTurn(){
+ turn++;
+ show();
+ log("番が進んだよ！");
+}
+reset();
+</script>
+</body>
+</html>
