@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ちゃっぴーTCG β0.5</title>
+<title>ちゃっぴーTCG β0.6</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0 auto;background:#10192c;color:white;font-family:-apple-system,sans-serif;padding:16px;max-width:720px}
@@ -12,84 +12,179 @@ h1{font-size:24px}
 h2{font-size:18px;margin:0 0 12px}
 section{background:#20314c;padding:15px;border-radius:14px;margin:12px 0}
 button{padding:12px;border:0;border-radius:10px;background:#ffd063;color:#252018;font-size:15px;font-weight:600;margin:3px}
-.card{display:inline-flex;flex-direction:column;justify-content:center;gap:5px;background:#365273;color:white;border:2px solid transparent;border-radius:12px;padding:12px;min-height:88px;min-width:120px;text-align:left}
+button:disabled{opacity:.45}
+.card{display:inline-flex;flex-direction:column;justify-content:center;gap:5px;background:#365273;color:white;border:2px solid transparent;border-radius:12px;padding:12px;min-height:85px;min-width:115px;text-align:left}
 .card.selected{border-color:#ffd063;background:#456688}
-.slot{border:1px dashed #6e87a7;border-radius:12px;min-height:98px;padding:8px;display:flex;align-items:center;justify-content:center}
+.slot{border:1px dashed #6e87a7;border-radius:12px;min-height:96px;padding:8px;display:flex;align-items:center;justify-content:center}
 .bench{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .hand,.controls{display:flex;flex-wrap:wrap;gap:6px}
 .muted{color:#afc2db;font-size:13px}
 .log{color:#ffe194;min-height:42px;white-space:pre-wrap}
 .tag{font-size:12px;color:#b9d4ee}
 #selected{font-size:14px;color:#ffe194}
+.counts{display:flex;gap:12px;flex-wrap:wrap;font-weight:600}
 </style>
 </head>
 <body>
-<h1>⚡ちゃっぴーTCG β0.5</h1>
-<p class="muted">対戦フィールド・通常進化の操作テスト</p>
+<h1>⚡ちゃっぴーTCG β0.6</h1>
+<p class="muted">山札・シャッフル・初手7枚・ターン開始ドローのテスト版</p>
+
 <section>
 <h2 id="turn"></h2>
+<div class="counts">
+<span id="deckCount"></span>
+<span id="handCount"></span>
+<span id="prizeCount"></span>
+</div>
 <div class="controls">
 <button id="next">次の自分の番へ</button>
-<button id="reset">最初から</button>
+<button id="reset">新しい対戦を準備</button>
 </div>
-<p class="muted">※相手の番は省略したテスト用進行だよ</p>
+<p class="muted">※相手の番を省略。初回のターン開始ドローも自動処理するよ。</p>
 </section>
+
 <section>
 <h2>バトル場</h2>
 <div id="active" class="slot"></div>
 </section>
+
 <section>
 <h2>ベンチ（最大5匹）</h2>
 <div id="bench" class="bench"></div>
 </section>
+
 <section>
 <h2>手札</h2>
 <div id="hand" class="hand"></div>
-<p class="muted">たねポケモンはタップして配置。進化するときは場のポケモンを先に選んでね。</p>
+<p class="muted">たねをタップして配置。進化するときは場のポケモンを先に選択してね。エネルギー・トレーナーズは今回は表示のみ。</p>
 </section>
+
 <section>
 <h2>選択中</h2>
 <p id="selected">なし</p>
 <h2>判定ログ</h2>
 <div id="log" class="log" role="status"></div>
 </section>
+
 <script>
 'use strict';
+
+// 60枚の仮デッキ。公式商品のカード構成・性能を表すものではありません。
 const catalog={
 pamo:{name:'パモ',stage:0},
-pawmot1:{name:'パモット',stage:1,from:'パモ'},
-pawmot2:{name:'パーモット',stage:2,from:'パモット'},
+pawmo:{name:'パモット',stage:1,from:'パモ'},
+pawmot:{name:'パーモット',stage:2,from:'パモット'},
 pikachu:{name:'ピカチュウex',stage:0},
 magnemite:{name:'コイル',stage:0},
-magneton:{name:'レアコイル',stage:1,from:'コイル'}
+magneton:{name:'レアコイル',stage:1,from:'コイル'},
+energy:{name:'基本雷エネルギー',type:'energy'},
+item:{name:'テスト用グッズ',type:'trainer'}
 };
-let turn,active,bench,hand,selected,uid;
+
+const deckList={
+pamo:4,
+pawmo:4,
+pawmot:3,
+pikachu:4,
+magnemite:4,
+magneton:3,
+energy:30,
+item:8
+};
+
+let turn,active,bench,hand,deck,prizes,selected,uid,ended,mulligans;
+
 const $=id=>document.getElementById(id);
-function message(s){$('log').textContent=s}
+
+function message(s){
+$('log').textContent=s;
+}
+
+function shuffled(cards){
+const a=cards.slice();
+for(let i=a.length-1;i>0;i--){
+const j=Math.floor(Math.random()*(i+1));
+[a[i],a[j]]=[a[j],a[i]];
+}
+return a;
+}
+
+function buildDeck(){
+const a=[];
+for(const [key,n] of Object.entries(deckList)){
+for(let i=0;i<n;i++)a.push(key);
+}
+if(a.length!==60)throw Error('デッキが60枚ではありません');
+return shuffled(a);
+}
+
+function drawOne(){
+if(!deck.length)return null;
+const card=deck.pop();
+hand.push(card);
+return card;
+}
+
 function newPokemon(key){
-return {uid:++uid,key,entered:turn,evolved:-1,damage:0,energy:[]}
+return {uid:++uid,key,entered:turn,evolved:-1,damage:0,energy:[]};
 }
+
 function reset(){
-turn=1;uid=0;active=null;bench=[];selected=null;
-hand=['pamo','pawmot1','pawmot2','pikachu','magnemite','magneton','pamo'];
+turn=1;
+uid=0;
+active=null;
+bench=[];
+selected=null;
+ended=false;
+mulligans=0;
+
+// たねが出るまで7枚引き直し。
+// 引き直し前の手札はデッキに戻す。
+do{
+deck=buildDeck();
+hand=[];
+for(let i=0;i<7;i++)drawOne();
+if(hand.some(k=>catalog[k].stage===0))break;
+mulligans++;
+}while(true);
+
+prizes=[];
+for(let i=0;i<6;i++)prizes.push(deck.pop());
+
+// 先攻1ターン目にも開始時のドローがある。
+const first=drawOne();
 render();
-message('手札のたねポケモンをタップしてバトル場に出そう！');
+message(
+'準備完了！ 初手7枚＋最初の番のドロー：'+
+catalog[first].name+'。'+
+(mulligans?' 引き直し '+mulligans+'回。':'')+
+' たねポケモンを場に出そう。'
+);
 }
+
 function chosen(){
 if(selected==='active')return active;
 if(Number.isInteger(selected))return bench[selected];
 return null;
 }
+
 function selectSlot(slot){
 if(slot==='active'&&!active)return;
 if(Number.isInteger(slot)&&!bench[slot])return;
 selected=slot;
 render();
-message('進化できるカードを手札から選んでね。');
+message('進化するなら手札の進化カードを選んでね。');
 }
+
 function play(i){
+if(ended)return;
 const key=hand[i],card=catalog[key];
 if(!card)return;
+
+if(card.type){
+return message('ℹ️ '+card.name+'の使用処理は次のバージョンで実装するよ。');
+}
+
 if(card.stage===0){
 if(!active){
 active=newPokemon(key);
@@ -98,76 +193,140 @@ selected='active';
 bench.push(newPokemon(key));
 selected=bench.length-1;
 }else{
-return message('❌ ベンチは5匹までだよ！');
+return message('❌ ベンチは5匹まで！');
 }
 hand.splice(i,1);
 render();
 return message('✅ '+card.name+'を場に出したよ！');
 }
+
 const target=chosen();
 if(!target)return message('❌ 先に場のポケモンを選んでね！');
+
 const base=catalog[target.key];
-if(turn===1)return message('❌ 最初の自分の番には進化できないよ！');
-if(target.entered===turn)return message('❌ この番に場に出したポケモンは進化できないよ！');
-if(target.evolved===turn)return message('❌ この番に進化したポケモンは再進化できないよ！');
-if(card.from!==base.name||card.stage!==base.stage+1){
-return message('❌ 進化元が違うよ！ '+card.name+'は「'+card.from+'」から進化するカードだよ。');
+
+if(turn===1){
+return message('❌ 最初の自分の番には進化できないよ！');
 }
+
+if(target.entered===turn){
+return message('❌ この番に場に出したポケモンは進化できないよ！');
+}
+
+if(target.evolved===turn){
+return message('❌ この番に進化したポケモンは再進化できないよ！');
+}
+
+if(card.from!==base.name||card.stage!==base.stage+1){
+return message(
+'❌ 進化元が違うよ！ '+
+card.name+'は「'+card.from+'」から進化するよ。'
+);
+}
+
 target.key=key;
 target.evolved=turn;
 hand.splice(i,1);
 render();
-message('✅ '+base.name+'から'+card.name+'に進化成功！');
+message('✅ '+base.name+' → '+card.name+' 進化成功！');
 }
+
 function cardButton(key,caption,onClick,isSelected=false){
 const c=catalog[key];
 const b=document.createElement('button');
 b.className='card'+(isSelected?' selected':'');
+
 const name=document.createElement('strong');
-name.textContent='⚡ '+c.name;
+name.textContent=
+(c.type==='energy'?'⚡ ':c.type==='trainer'?'🧰 ':'🐾 ')+c.name;
+
 const stage=document.createElement('span');
 stage.className='tag';
-stage.textContent=['たね','1進化','2進化'][c.stage]+(c.from?' / '+c.from+'から進化':'');
+stage.textContent=
+c.type==='energy'?'エネルギー':
+c.type==='trainer'?'グッズ（仮）':
+['たね','1進化','2進化'][c.stage]+
+(c.from?' / '+c.from+'から':'');
+
 b.append(name,stage);
+
 if(caption){
 const cap=document.createElement('span');
 cap.className='tag';
 cap.textContent=caption;
 b.append(cap);
 }
+
 b.addEventListener('click',onClick);
 return b;
 }
+
 function render(){
 $('turn').textContent='自分の番：'+turn;
+$('deckCount').textContent='山札 '+deck.length+'枚';
+$('handCount').textContent='手札 '+hand.length+'枚';
+$('prizeCount').textContent='サイド '+prizes.length+'枚';
+$('next').disabled=ended;
+
 $('active').replaceChildren();
 if(active){
-$('active').append(cardButton(active.key,'バトル場',()=>selectSlot('active'),selected==='active'));
+$('active').append(
+cardButton(active.key,'バトル場',()=>selectSlot('active'),selected==='active')
+);
 }else{
 $('active').textContent='空き';
 }
+
 $('bench').replaceChildren();
 for(let i=0;i<5;i++){
 const div=document.createElement('div');
 div.className='slot';
+
 if(bench[i]){
-div.append(cardButton(bench[i].key,'ベンチ '+(i+1),()=>selectSlot(i),selected===i));
+div.append(
+cardButton(bench[i].key,'ベンチ '+(i+1),()=>selectSlot(i),selected===i)
+);
 }else{
 div.textContent='空き '+(i+1);
 div.classList.add('muted');
 }
 $('bench').append(div);
 }
+
 $('hand').replaceChildren();
-hand.forEach((key,i)=>$('hand').append(cardButton(key,'手札',()=>play(i))));
-const target=chosen();
-$('selected').textContent=target?catalog[target.key].name+'（'+(selected==='active'?'バトル場':'ベンチ '+(selected+1))+'）':'なし';
-}
-$('next').addEventListener('click',()=>{
-turn++;
-render();
-message('自分の番が進んだよ！');
+hand.forEach((key,i)=>{
+$('hand').append(cardButton(key,'手札',()=>play(i)));
 });
+
+const target=chosen();
+$('selected').textContent=target?
+catalog[target.key].name+
+'（'+(selected==='active'?'バトル場':'ベンチ '+(selected+1))+'）':
+'なし';
+}
+
+$('next').addEventListener('click',()=>{
+if(ended)return;
+
+if(!active){
+return message('❌ まずバトル場にたねポケモンを出してね！');
+}
+
+if(!deck.length){
+ended=true;
+render();
+return message('🏁 自分の番の開始時に山札を引けないため、山札切れで負け！');
+}
+
+turn++;
+const key=drawOne();
+render();
+message(
+'📥 '+turn+'番目の自分の番！ 山札から「'+
+catalog[key].name+'」を1枚引いたよ。'
+);
+});
+
 $('reset').addEventListener('click',reset);
 reset();
 </script>
