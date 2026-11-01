@@ -4,32 +4,31 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ちゃっぴーTCG β0.8</title>
+<title>ちゃっぴーTCG β0.9</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0 auto;background:#10192c;color:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:16px;max-width:760px}
+body{margin:0 auto;max-width:760px;background:#10192c;color:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:15px}
 h1{font-size:24px}
-h2{font-size:18px;margin:0 0 12px}
-section{background:#20314c;padding:15px;border-radius:14px;margin:12px 0}
-button{padding:11px;border:0;border-radius:10px;background:#ffd063;color:#252018;font-size:14px;font-weight:650;margin:3px}
+h2{font-size:18px;margin:0 0 10px}
+section{background:#20314c;border-radius:14px;padding:14px;margin:12px 0}
+button{padding:10px;border:0;border-radius:10px;background:#ffd063;color:#252018;font-weight:650;margin:3px}
 button:disabled{opacity:.4}
-.card{display:inline-flex;flex-direction:column;gap:5px;background:#365273;color:#fff;border:2px solid transparent;border-radius:12px;padding:11px;min-height:82px;min-width:115px;text-align:left}
-.card.selected{border-color:#ffd063;background:#456688}
-.slot{border:1px dashed #6e87a7;border-radius:12px;min-height:96px;padding:8px;display:flex;align-items:center;justify-content:center}
-.bench{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.hand,.controls{display:flex;flex-wrap:wrap;gap:5px}
-.muted{color:#afc2db;font-size:13px}
-.log{color:#ffe194;min-height:45px;white-space:pre-wrap}
-.tag{font-size:12px;color:#b9d4ee}
-.counts{display:flex;gap:12px;flex-wrap:wrap;font-weight:600}
-.enemy{background:#46374e;border:1px solid #ab7dba;border-radius:12px;padding:12px}
-.attacks{display:flex;flex-wrap:wrap;gap:6px}
-#status{font-weight:bold;color:#ffe194}
+.card{display:inline-flex;flex-direction:column;gap:5px;background:#365273;color:white;border:2px solid transparent;border-radius:10px;padding:10px;min-width:110px;text-align:left}
+.selected{border-color:#ffd063;background:#456688}
+.slot{border:1px dashed #6e87a7;border-radius:10px;min-height:85px;padding:7px;display:flex;align-items:center;justify-content:center}
+.bench{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.hand,.controls,.attacks,.counts{display:flex;flex-wrap:wrap;gap:5px}
+.muted,.tag{font-size:12px;color:#b9d4ee}
+.log{white-space:pre-wrap;color:#ffe194;min-height:40px}
+.enemy{border:1px solid #ab7dba;border-radius:10px;padding:10px;background:#46374e}
+.counts{gap:12px;font-weight:650}
+#status{color:#ffe194;font-weight:700}
 </style>
 </head>
 <body>
-<h1>⚡ちゃっぴーTCG β0.8</h1>
-<p class="muted">ワザ・ダメージ・きぜつ判定のテスト版。カードのHP・ワザは仮設定です。</p>
+<h1>⚡ちゃっぴーTCG β0.9</h1>
+<p class="muted">きぜつ・サイド・交代のテスト版。カード性能と相手の構成は仮設定です。</p>
+
 <section>
 <h2 id="turn"></h2>
 <div class="counts">
@@ -43,44 +42,73 @@ button:disabled{opacity:.4}
 <button id="next">次の自分の番へ</button>
 <button id="reset">新しい対戦を準備</button>
 </div>
-<p class="muted">相手は攻撃しないテスト用の的。次の番へ進むと攻撃済み状態が解除されます。</p>
+<p class="muted">相手は攻撃しません。攻撃後は「次の自分の番へ」で進行します。</p>
 </section>
+
 <section>
 <h2>相手のバトルポケモン</h2>
 <div id="enemy" class="enemy"></div>
+<h2 style="margin-top:12px">相手のベンチ</h2>
+<div id="enemyBench" class="bench"></div>
 </section>
+
 <section>
 <h2>自分のバトル場</h2>
 <div id="active" class="slot"></div>
-<h2 style="margin-top:14px">ワザ</h2>
+<h2 style="margin-top:12px">ワザ</h2>
 <div id="attacks" class="attacks"></div>
 </section>
+
 <section>
-<h2>ベンチ（最大5匹）</h2>
+<h2>自分のベンチ</h2>
 <div id="bench" class="bench"></div>
 </section>
+
 <section>
 <h2>手札</h2>
 <div id="hand" class="hand"></div>
-<p class="muted">ポケモンを選択してから、手札のエネルギーまたは進化カードをタップ。ワザはバトル場のポケモンだけが使えます。</p>
+<p class="muted">場のポケモンを選択してからエネルギーや進化カードをタップしてね。</p>
 </section>
+
 <section>
 <h2>選択中</h2>
 <p id="selected">なし</p>
 <h2>判定ログ</h2>
 <div id="log" class="log" role="status"></div>
 </section>
+
 <script>
 'use strict';
 
-// 全カードとワザは動作確認用の仮設定。公式デッキデータではありません。
+// 公式カード性能ではない仮データ。ゲーム処理の検証専用。
 const catalog={
-pamo:{name:'パモ',stage:0,hp:70,attacks:[{name:'でんきショック（仮）',cost:1,damage:20}]},
-pawmo:{name:'パモット',stage:1,from:'パモ',hp:90,attacks:[{name:'スパーク（仮）',cost:2,damage:40}]},
-pawmot:{name:'パーモット',stage:2,from:'パモット',hp:150,attacks:[{name:'らいげき（仮）',cost:3,damage:100}]},
-pikachu:{name:'ピカチュウex',stage:0,hp:190,attacks:[{name:'でんこうせっか（仮）',cost:1,damage:30},{name:'10まんボルト（仮）',cost:3,damage:120}]},
-magnemite:{name:'コイル',stage:0,hp:60,attacks:[{name:'たいあたり（仮）',cost:1,damage:10}]},
-magneton:{name:'レアコイル',stage:1,from:'コイル',hp:100,attacks:[{name:'でんじほう（仮）',cost:2,damage:50}]},
+pamo:{
+name:'パモ',stage:0,hp:70,
+attacks:[{name:'でんきショック（仮）',cost:1,damage:20}]
+},
+pawmo:{
+name:'パモット',stage:1,from:'パモ',hp:90,
+attacks:[{name:'スパーク（仮）',cost:2,damage:40}]
+},
+pawmot:{
+name:'パーモット',stage:2,from:'パモット',hp:150,
+attacks:[{name:'らいげき（仮）',cost:3,damage:100}]
+},
+pikachu:{
+name:'ピカチュウex',stage:0,hp:190,
+attacks:[
+{name:'でんこうせっか（仮）',cost:1,damage:30},
+{name:'10まんボルト（仮）',cost:3,damage:120}
+]
+},
+magnemite:{
+name:'コイル',stage:0,hp:60,
+attacks:[{name:'たいあたり（仮）',cost:1,damage:10}]
+},
+magneton:{
+name:'レアコイル',stage:1,from:'コイル',hp:100,
+attacks:[{name:'でんじほう（仮）',cost:2,damage:50}]
+},
 energy:{name:'基本雷エネルギー',type:'energy'},
 item:{name:'テスト用グッズ',type:'trainer'}
 };
@@ -90,10 +118,23 @@ pamo:4,pawmo:4,pawmot:3,pikachu:4,
 magnemite:4,magneton:3,energy:30,item:8
 };
 
-let turn,active,bench,hand,deck,prizes,selected,uid,ended,energyAttached,attacked,enemy;
+// テスト用：合計サイド6枚分
+// 通常1 + ex2 + 通常1 + ex2
+const enemyLineup=[
+{name:'練習ポケモンA',hp:60,prize:1},
+{name:'練習ポケモンex B',hp:100,prize:2},
+{name:'練習ポケモンC',hp:80,prize:1},
+{name:'練習ポケモンex D',hp:120,prize:2}
+];
+
+let turn,active,bench,hand,deck,prizes,selected,uid;
+let ended,energyAttached,attacked,enemy,enemyBench,won;
+
 const $=id=>document.getElementById(id);
 
-function message(s){$('log').textContent=s}
+function message(s){
+$('log').textContent=s;
+}
 
 function shuffled(cards){
 const a=cards.slice();
@@ -109,24 +150,35 @@ const a=[];
 for(const [key,n] of Object.entries(deckList)){
 for(let i=0;i<n;i++)a.push(key);
 }
-if(a.length!==60)throw Error('60枚ではありません');
+if(a.length!==60)throw Error('デッキは60枚必要');
 return shuffled(a);
 }
 
 function drawOne(){
 if(!deck.length)return null;
-const k=deck.pop();
-hand.push(k);
-return k;
+const key=deck.pop();
+hand.push(key);
+return key;
 }
 
 function newPokemon(key){
-return {uid:++uid,key,entered:turn,evolved:-1,damage:0,energy:[]};
+return {
+uid:++uid,key,entered:turn,evolved:-1,
+damage:0,energy:[]
+};
 }
 
 function reset(){
-turn=1;uid=0;active=null;bench=[];selected=null;
-ended=false;energyAttached=false;attacked=false;
+turn=1;
+uid=0;
+active=null;
+bench=[];
+selected=null;
+ended=false;
+won=false;
+energyAttached=false;
+attacked=false;
+
 let mulligans=0;
 do{
 deck=buildDeck();
@@ -135,12 +187,21 @@ for(let i=0;i<7;i++)drawOne();
 if(hand.some(k=>catalog[k].stage===0))break;
 mulligans++;
 }while(true);
+
 prizes=[];
 for(let i=0;i<6;i++)prizes.push(deck.pop());
+
 const first=drawOne();
-enemy={name:'練習用ポケモン',hp:160,damage:0};
+enemy={...enemyLineup[0],damage:0};
+enemyBench=enemyLineup.slice(1).map(e=>({...e,damage:0}));
+
 render();
-message('準備完了！ 最初のドロー：'+catalog[first].name+'。'+(mulligans?'引き直し'+mulligans+'回。':'')+'たねを出してエネルギーを付けよう！');
+message(
+'準備完了！ 1ターン目のドロー：'+
+catalog[first].name+'。'+
+(mulligans?'引き直し'+mulligans+'回。':'')+
+' 相手を倒してサイド6枚を取ろう！'
+);
 }
 
 function chosen(){
@@ -150,33 +211,42 @@ return null;
 }
 
 function selectSlot(slot){
-if(ended||attacked)return message('❌ 攻撃後は次の番まで操作できないよ。');
+if(ended||attacked){
+return message('❌ 攻撃後は次の番まで操作できないよ。');
+}
 if(slot==='active'&&!active)return;
 if(Number.isInteger(slot)&&!bench[slot])return;
 selected=slot;
 render();
-message('選択したポケモンに進化カードやエネルギーを使えるよ。');
+message('進化カードかエネルギーを手札から選んでね。');
 }
 
 function play(i){
 if(ended)return;
-if(attacked)return message('❌ ワザを使ったので、この番の操作は終了だよ。');
+if(attacked){
+return message('❌ 攻撃後はこの番の操作は終了だよ。');
+}
+
 const key=hand[i],card=catalog[key];
 if(!card)return;
 
 if(card.type==='energy'){
 const target=chosen();
 if(!target)return message('❌ 先にポケモンを選んでね！');
-if(energyAttached)return message('❌ 手貼りは1ターンに1枚まで！');
+if(energyAttached){
+return message('❌ エネルギーの手貼りは1ターン1枚まで！');
+}
 target.energy.push(key);
 hand.splice(i,1);
 energyAttached=true;
 render();
-return message('⚡ '+catalog[target.key].name+'に雷エネルギーを1枚付けたよ！');
+return message(
+'⚡ '+catalog[target.key].name+'に雷エネルギーを付けたよ！'
+);
 }
 
 if(card.type==='trainer'){
-return message('ℹ️ グッズはまだ使えないよ。');
+return message('ℹ️ グッズはまだ使用できないよ。');
 }
 
 if(card.stage===0){
@@ -196,60 +266,125 @@ return message('✅ '+card.name+'を場に出したよ！');
 
 const target=chosen();
 if(!target)return message('❌ 先に場のポケモンを選んでね！');
+
 const base=catalog[target.key];
 
-if(turn===1)return message('❌ 最初の自分の番には進化できないよ！');
-if(target.entered===turn)return message('❌ この番に出したポケモンは進化できないよ！');
-if(target.evolved===turn)return message('❌ この番に進化したポケモンは再進化できないよ！');
-if(card.from!==base.name||card.stage!==base.stage+1){
-return message('❌ 進化元が違うよ！ '+card.name+'は「'+card.from+'」から進化するよ。');
+if(turn===1){
+return message('❌ 最初の自分の番には進化できないよ！');
 }
+if(target.entered===turn){
+return message('❌ この番に出したポケモンは進化できないよ！');
+}
+if(target.evolved===turn){
+return message('❌ この番に進化したポケモンは再進化できないよ！');
+}
+if(card.from!==base.name||card.stage!==base.stage+1){
+return message('❌ 進化元が違うよ！');
+}
+
 target.key=key;
 target.evolved=turn;
 hand.splice(i,1);
 render();
-message('✅ '+base.name+' → '+card.name+'に進化！ ⚡'+target.energy.length+'枚を引き継いだよ。');
+message(
+'✅ '+base.name+' → '+card.name+
+'に進化！ ⚡'+target.energy.length+'枚を引き継いだよ。'
+);
 }
 
 function attack(index){
 if(ended)return;
-if(attacked)return message('❌ この番はもうワザを使ったよ！');
-if(!active)return message('❌ バトルポケモンがいないよ！');
-const c=catalog[active.key],a=c.attacks[index];
+if(attacked)return message('❌ この番はもう攻撃済み！');
+if(!active)return message('❌ バトル場が空だよ！');
+
+const c=catalog[active.key];
+const a=c.attacks[index];
 if(!a)return;
 
 if(active.energy.length<a.cost){
-return message('❌ エネルギー不足！ '+a.name+'には⚡'+a.cost+'枚必要だよ（現在'+active.energy.length+'枚）。');
+return message(
+'❌ エネルギー不足！ '+a.name+
+'には⚡'+a.cost+'枚必要（現在'+
+active.energy.length+'枚）。'
+);
 }
 
 enemy.damage+=a.damage;
 attacked=true;
-const fainted=enemy.damage>=enemy.hp;
 
-if(fainted){
-ended=true;
+if(enemy.damage<enemy.hp){
 render();
-return message('💥 '+a.name+'で'+a.damage+'ダメージ！ 相手はきぜつ！ 🏁 テスト勝利！（サイド処理は未実装）');
+return message(
+'💥 '+a.name+'で'+a.damage+
+'ダメージ！ 相手の残りHP '+
+(enemy.hp-enemy.damage)+'。'
+);
 }
+
+const fainted=enemy.name;
+const prizeCount=enemy.prize;
+const taken=prizes.splice(0,prizeCount);
+hand.push(...taken);
+
+let info=
+'💥 '+a.name+'で'+a.damage+'ダメージ！ '+
+fainted+'がきぜつ！ サイド'+
+taken.length+'枚を手札に加えたよ。';
+
+if(prizes.length===0){
+ended=true;
+won=true;
+enemy=null;
 render();
-message('💥 '+a.name+'で'+a.damage+'ダメージ！ 相手の残りHP '+(enemy.hp-enemy.damage)+'。ワザを使ったので番が終了したよ。');
+return message(info+' 🏆 サイド6枚を取り切って勝利！');
+}
+
+if(enemyBench.length===0){
+ended=true;
+won=true;
+enemy=null;
+render();
+return message(
+info+' 🏆 相手の場にポケモンがいないので勝利！'
+);
+}
+
+enemy=enemyBench.shift();
+render();
+message(
+info+' 相手はベンチから「'+
+enemy.name+'」をバトル場に出したよ。'+
+'次の自分の番へ進もう！'
+);
 }
 
 function cardButton(key,caption,onClick,isSelected=false){
-const c=catalog[key],b=document.createElement('button');
+const c=catalog[key];
+const b=document.createElement('button');
 b.className='card'+(isSelected?' selected':'');
+
 const name=document.createElement('strong');
-name.textContent=(c.type==='energy'?'⚡ ':c.type==='trainer'?'🧰 ':'🐾 ')+c.name;
+name.textContent=
+(c.type==='energy'?'⚡ ':
+c.type==='trainer'?'🧰 ':'🐾 ')+c.name;
+
 const stage=document.createElement('span');
 stage.className='tag';
-stage.textContent=c.type==='energy'?'エネルギー':c.type==='trainer'?'グッズ（仮）':['たね','1進化','2進化'][c.stage]+(c.from?' / '+c.from+'から':'');
+stage.textContent=
+c.type==='energy'?'エネルギー':
+c.type==='trainer'?'グッズ（仮）':
+['たね','1進化','2進化'][c.stage]+
+(c.from?' / '+c.from+'から':'');
+
 b.append(name,stage);
+
 if(caption){
 const cap=document.createElement('span');
 cap.className='tag';
 cap.textContent=caption;
 b.append(cap);
 }
+
 b.addEventListener('click',onClick);
 return b;
 }
@@ -258,17 +393,45 @@ function render(){
 $('turn').textContent='自分の番：'+turn;
 $('deckCount').textContent='山札 '+deck.length+'枚';
 $('handCount').textContent='手札 '+hand.length+'枚';
-$('prizeCount').textContent='サイド '+prizes.length+'枚';
-$('status').textContent=ended?'🏁 テスト終了':attacked?'攻撃済み：次の番へ進んでね':'操作可能';
-$('energyStatus').textContent='⚡ この番の手貼り：'+(energyAttached?'使用済み（1/1）':'未使用（0/1）');
+$('prizeCount').textContent='残りサイド '+prizes.length+'枚';
+
+$('status').textContent=
+ended?(won?'🏆 テスト勝利！':'🏁 テスト終了'):
+attacked?'攻撃済み：次の番へ':'操作可能';
+
+$('energyStatus').textContent=
+'⚡ 手貼り：'+
+(energyAttached?'使用済み（1/1）':'未使用（0/1）');
+
 $('next').disabled=ended;
-$('enemy').textContent=enemy.name+' / HP '+Math.max(0,enemy.hp-enemy.damage)+' / '+enemy.hp+'（ダメージ '+enemy.damage+'）';
+
+$('enemy').textContent=enemy?
+enemy.name+
+' / HP '+Math.max(0,enemy.hp-enemy.damage)+
+' / '+enemy.hp+
+' / きぜつ時サイド'+enemy.prize+'枚':
+'相手のバトル場は空';
+
+$('enemyBench').replaceChildren();
+enemyBench.forEach(e=>{
+const div=document.createElement('div');
+div.className='enemy';
+div.textContent=
+e.name+' / HP '+e.hp+' / サイド'+e.prize+'枚';
+$('enemyBench').append(div);
+});
+if(!enemyBench.length){
+$('enemyBench').textContent='ベンチなし';
+}
 
 $('active').replaceChildren();
 if(active){
 $('active').append(cardButton(
 active.key,
-'HP '+Math.max(0,catalog[active.key].hp-active.damage)+' / '+catalog[active.key].hp+' ・ ⚡'+active.energy.length+'枚',
+'HP '+
+Math.max(0,catalog[active.key].hp-active.damage)+
+' / '+catalog[active.key].hp+
+' ・ ⚡'+active.energy.length+'枚',
 ()=>selectSlot('active'),
 selected==='active'
 ));
@@ -280,13 +443,15 @@ $('attacks').replaceChildren();
 if(active){
 catalog[active.key].attacks.forEach((a,i)=>{
 const b=document.createElement('button');
-b.textContent=a.name+' / ⚡'+a.cost+' / '+a.damage+'ダメージ';
+b.textContent=
+a.name+' / ⚡'+a.cost+' / '+a.damage+'ダメージ';
 b.disabled=ended||attacked;
 b.addEventListener('click',()=>attack(i));
 $('attacks').append(b);
 });
 }else{
-$('attacks').textContent='バトル場にポケモンを出すとワザが表示されるよ。';
+$('attacks').textContent=
+'ポケモンをバトル場に出してね。';
 }
 
 $('bench').replaceChildren();
@@ -296,7 +461,8 @@ div.className='slot';
 if(bench[i]){
 div.append(cardButton(
 bench[i].key,
-'ベンチ '+(i+1)+' / ⚡'+bench[i].energy.length+'枚',
+'ベンチ'+(i+1)+' / ⚡'+
+bench[i].energy.length+'枚',
 ()=>selectSlot(i),
 selected===i
 ));
@@ -308,26 +474,40 @@ $('bench').append(div);
 }
 
 $('hand').replaceChildren();
-hand.forEach((key,i)=>$('hand').append(cardButton(key,'手札',()=>play(i))));
+hand.forEach((key,i)=>{
+$('hand').append(cardButton(key,'手札',()=>play(i)));
+});
+
 const target=chosen();
 $('selected').textContent=target?
-catalog[target.key].name+'（'+(selected==='active'?'バトル場':'ベンチ '+(selected+1))+' / ⚡'+target.energy.length+'枚）':'なし';
+catalog[target.key].name+
+'（'+
+(selected==='active'?'バトル場':'ベンチ '+(selected+1))+
+' / ⚡'+target.energy.length+'枚）':
+'なし';
 }
 
 $('next').addEventListener('click',()=>{
 if(ended)return;
-if(!active)return message('❌ まずバトル場にたねポケモンを出してね！');
+if(!active){
+return message('❌ バトル場にたねポケモンを出してね！');
+}
 if(!deck.length){
 ended=true;
+won=false;
 render();
 return message('🏁 山札を引けないため敗北！');
 }
+
 turn++;
 energyAttached=false;
 attacked=false;
 const key=drawOne();
 render();
-message('📥 '+turn+'番目の自分の番！ 「'+catalog[key].name+'」を引いたよ。攻撃と手貼りが再びできるよ。');
+message(
+'📥 '+turn+'番目の自分の番！ 「'+
+catalog[key].name+'」を引いたよ。'
+);
 });
 
 $('reset').addEventListener('click',reset);
