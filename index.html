@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ちゃっぴーTCG β1.4.1</title>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ちゃっぴーTCG β1.5</title>
 <style>
 *{box-sizing:border-box}body{margin:0 auto;max-width:780px;padding:14px;background:#10192c;color:#fff;font-family:system-ui,sans-serif}h1{font-size:23px}h2{font-size:17px;margin:0 0 9px}section{background:#20314c;border-radius:14px;padding:13px;margin:11px 0}button{background:#ffd063;color:#282318;border:0;border-radius:10px;padding:10px;font-weight:650;margin:3px;cursor:pointer}button:disabled{opacity:.4;cursor:default}.card{background:#365273;color:#fff;border:2px solid transparent;border-radius:10px;text-align:left;min-width:110px;padding:10px;display:inline-flex;flex-direction:column;gap:4px}.selected{border-color:#ffd063}.slot{border:1px dashed #8196b1;border-radius:10px;padding:7px;min-height:75px;display:flex;justify-content:center;align-items:center}.bench{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.hand,.actions,.counts{display:flex;gap:5px;flex-wrap:wrap}.counts{gap:13px;font-weight:650}.muted,.small{color:#bbcee5;font-size:12px}.log{white-space:pre-wrap;color:#ffe29a;min-height:40px}.enemy{background:#46374e;border-radius:10px;padding:10px;margin:5px 0}.notice{color:#ffe29a;font-weight:700}.hide{display:none!important}.coin{font-size:48px;text-align:center;margin:10px}.info{border-left:3px solid #ffd063;padding-left:9px}.trashlist{display:grid;gap:6px;margin-top:8px}.trashrow{background:#304763;color:#fff;text-align:left;width:100%;margin:0}.tabon{outline:2px solid #fff}.retreathelp{font-size:12px;color:#ffe29a}
 </style></head><body>
-<h1>⚡ちゃっぴーTCG β1.4.1</h1><p class="muted">🤖 CPUのにげる判断を調整し、判断ログを追加。カードの能力・デッキは仮データです。</p>
+<h1>⚡ちゃっぴーTCG β1.5</h1><p class="muted">🧰 仮グッズ「テスト用グッズ」（山札を2枚引く）を追加。カードの能力・デッキは仮データです。</p>
 <section id="setup"><h2>🪙 コイントス</h2><p id="coinMessage">オモテかウラを予想してね！</p><div id="coinFace" class="coin">🪙</div><div id="coinButtons" class="actions"><button id="heads">オモテを予想</button><button id="tails">ウラを予想</button></div><div id="orderButtons" class="actions hide"><button id="first">先攻を選ぶ</button><button id="second">後攻を選ぶ</button></div></section>
 <section id="prep" class="hide"><h2>🎒 対戦準備</h2><p id="prepInfo"></p><div id="prepActions" class="actions"></div><p class="muted">初期配置では手札のたねポケモンをタップしてバトル場→ベンチへ配置。配置後に「準備完了」を押してね。</p></section>
 <section><h2 id="turn">対戦準備中</h2><div class="counts"><span id="mineCount"></span><span id="cpuCount"></span></div><p class="notice" id="status"></p><p id="energyStatus"></p><p id="orderInfo" class="info"></p><div class="actions"><button id="next">番を終える・CPU行動</button><button id="reset">新しい対戦</button></div></section>
 <section><h2>🤖 CPUバトル場</h2><div id="enemy" class="enemy"></div><h2>CPUベンチ</h2><div id="enemyBench" class="bench"></div></section>
 <section><h2>自分のバトル場</h2><div id="active" class="slot"></div><h2 style="margin-top:12px">ワザ</h2><div id="attacks" class="actions"></div><div class="actions"><button id="retreat">🏃 にげる</button></div><p id="retreatInfo" class="retreathelp"></p><div id="retreatChoices" class="actions"></div></section>
 <section><h2>自分のベンチ</h2><div id="bench" class="bench"></div></section>
-<section><h2>手札</h2><div id="hand" class="hand"></div><p class="muted">対戦中：対象ポケモンを選んでからエネルギー・進化カードをタップ。</p></section>
+<section><h2>手札</h2><p class="muted">🧰 テスト用グッズ：山札から最大2枚引き、使用後トラッシュへ（仮効果・グッズの使用回数制限なし）。</p><div id="hand" class="hand"></div><p class="muted">対戦中：対象ポケモンを選んでからエネルギー・進化カードをタップ。</p></section>
 <section><h2>🗑️ トラッシュを確認</h2><div class="actions"><button id="trashPlayer">自分のトラッシュ</button><button id="trashCpu">CPUのトラッシュ</button></div><p id="trashCount" class="muted"></p><div id="trashList" class="trashlist"></div><p id="trashDetail" class="info muted">カードをタップすると詳細を表示するよ。</p></section>
 <section><h2>選択中</h2><p id="selected">なし</p><h2>対戦ログ</h2><div id="log" class="log" role="status"></div></section>
 <script>
@@ -26,7 +26,7 @@ const cards={
  pikachu:{name:'ピカチュウex',stage:0,hp:190,retreat:1,ex:true,attacks:[{name:'でんこうせっか（仮）',cost:1,damage:30},{name:'10まんボルト（仮）',cost:3,damage:120}]},
  magnemite:{name:'コイル',stage:0,hp:60,retreat:1,attacks:[{name:'たいあたり（仮）',cost:1,damage:10}]},
  magneton:{name:'レアコイル',stage:1,from:'コイル',hp:100,retreat:2,attacks:[{name:'でんじほう（仮）',cost:2,damage:50}]},
- energy:{name:'基本雷エネルギー',type:'energy'},item:{name:'テスト用グッズ',type:'trainer'}
+ energy:{name:'基本雷エネルギー',type:'energy'},item:{name:'テスト用グッズ',type:'trainer',subtype:'item',effect:'draw2'}
 };
 const recipe={pamo:4,pawmo:4,pawmot:3,pikachu:4,magnemite:4,magneton:3,energy:30,item:8};
 const $=id=>document.getElementById(id);
@@ -66,11 +66,32 @@ function chosen(){return selected==='active'?player.active:Number.isInteger(sele
 function choose(s){if(phase==='retreat'){return completeRetreat(s)}if(phase==='promote'){if(!Number.isInteger(s)||!player.bench[s])return say('❌ ベンチから交代先を選んでね');player.active=player.bench.splice(s,1)[0];selected='active';beginPlayerTurn('🔄 '+cards[player.active.key].name+'をバトル場へ。');return}if(phase!=='player'||attacked)return;if(s==='active'&&!player.active)return;if(Number.isInteger(s)&&!player.bench[s])return;selected=s;render();say('選択：'+cards[chosen().key].name)}
 function play(i){if(phase!=='player'&&phase!=='placement')return say('❌ 今は手札を使えないよ');if(attacked)return say('❌ 攻撃後は操作できないよ');const k=player.hand[i],c=cards[k];if(!c)return;
  if(phase==='placement'){if(!basic(k))return say('❌ 初期配置はたねポケモンだけだよ');if(!player.active){player.active=pokemon(k,'player');selected='active'}else if(player.bench.length<5){player.bench.push(pokemon(k,'player'));selected=player.bench.length-1}else return say('❌ ベンチは5匹まで');takeHand(player,i);render();return say('🎒 '+c.name+'を初期配置した')}
- if(c.type==='trainer')return say('ℹ️ グッズは未実装');
+ if(c.type==='trainer')return playTrainer(i);
  if(c.type==='energy'){const t=chosen();if(!t)return say('❌ 先にポケモンを選んでね');if(energyUsed)return say('❌ 手貼りは1ターン1枚まで');t.energyCards.push({key:takeHand(player,i),id:++uid});t.energy=t.energyCards.length;energyUsed=true;render();return say('⚡ '+cards[t.key].name+'にエネルギーを付けた')}
  if(c.stage===0){if(!player.active){player.active=pokemon(k,'player');selected='active'}else if(player.bench.length<5){player.bench.push(pokemon(k,'player'));selected=player.bench.length-1}else return say('❌ ベンチは5匹まで');takeHand(player,i);render();return say('✅ '+c.name+'を場に出した')}
  const t=chosen();if(!t)return say('❌ 進化するポケモンを選んでね');const b=cards[t.key];if(turns.player<=1||t.entered===turns.player||t.evolved===turns.player)return say('❌ この番は進化できないよ');if(c.from!==b.name||c.stage!==b.stage+1)return say('❌ 進化元が違うよ');t.key=k;t.evolved=turns.player;takeHand(player,i);t.stack.push({key:k,id:++uid});render();say('✅ '+b.name+' → '+c.name+'に進化！')}
 // トラッシュはカード実体を保存。進化カード・進化元・付いているエネルギーを個別に移動。
+
+// トレーナーズの共通入口。今回はテスト用グッズ1種のみ。使用後はカード実体をトラッシュへ。
+function playTrainer(i){
+ if(phase!=='player'||attacked)return say('❌ 今はグッズを使えないよ');
+ const key=player.hand[i],c=cards[key];
+ if(!c||c.type!=='trainer'||c.subtype!=='item')return say('❌ このカードは使えないよ');
+ if(c.effect==='draw2'&&!player.deck.length)return say('❌ 山札にカードがないため、この仮グッズは使えないよ');
+ takeHand(player,i);player.trash.push({key,id:++uid});
+ let count=0;
+ if(c.effect==='draw2')for(let n=0;n<2;n++){if(draw(player))count++}
+ render();say('🧰 '+c.name+'を使用！ 山札から'+count+'枚引いて、グッズをトラッシュへ。');
+}
+// CPUは1ターンに仮グッズを最大1枚使用。山札が空なら使わない。
+function cpuUseTrainer(logs){
+ if(!cpu.deck.length)return;
+ const i=cpu.hand.findIndex(k=>cards[k]?.type==='trainer'&&cards[k].effect==='draw2');
+ if(i<0)return;
+ const key=takeHand(cpu,i);cpu.trash.push({key,id:++uid});
+ let count=0;for(let n=0;n<2;n++)if(draw(cpu))count++;
+ logs.push('🤖 '+cards[key].name+'を使用し、'+count+'枚ドロー。グッズをトラッシュへ');
+}
 function discardPokemon(side,mon){if(!mon)return;side.trash.push(...mon.stack,...mon.energyCards)}
 function startRetreat(){if(phase!=='player'||attacked)return say('❌ 今はにげられないよ');if(retreatUsed)return say('❌ にげるのは1ターンに1回まで');if(!player.active||!player.bench.length)return say('❌ 交代できるベンチポケモンがいないよ');const cost=cards[player.active.key].retreat??0;if(player.active.energyCards.length<cost)return say('❌ にげるためのエネルギーが足りないよ（必要'+cost+'枚）');phase='retreat';retreatPicking=true;render();say('🏃 交代先のベンチポケモンを選んでね。キャンセルもできるよ。')}
 function cancelRetreat(){if(phase!=='retreat')return;phase='player';retreatPicking=false;render();say('にげる操作をキャンセルしたよ。')}
@@ -118,7 +139,7 @@ function cpuRetreat(logs){
 }
 function cpuAttack(logs){if(firstSide==='cpu'&&turns.cpu===1){logs.push('🤖 先攻1ターン目なので攻撃しない');return'ok'}if(!cpu.active||!player.active)return'ok';const available=cards[cpu.active.key].attacks.filter(a=>a.cost<=cpu.active.energy).sort((a,b)=>b.damage-a.damage);if(!available.length){logs.push('🤖 エネルギー不足で攻撃できない');return'ok'}const a=available[0];player.active.receivedDamage+=a.damage;logs.push('💥 CPUの'+a.name+'！'+a.damage+'ダメージ。自分の残りHP '+Math.max(0,cards[player.active.key].hp-player.active.receivedDamage));if(player.active.receivedDamage>=cards[player.active.key].hp){const fainted=player.active;logs.push('💀 '+cards[fainted.key].name+'がきぜつ！');player.active=null;discardPokemon(player,fainted);selected=null;if(award(cpu,player,fainted,logs))return'over';return'promote'}return'ok'}
 function beginPlayerTurn(prefix){if(phase==='over')return;if(!player.deck.length)return finish('cpu',prefix+'\n自分が山札からカードを引けない！');turns.player++;energyUsed=false;attacked=false;retreatUsed=false;retreatPicking=false;phase='player';const k=draw(player);render();say(prefix+'\n📥 自分の'+turns.player+'番目：'+cards[k].name+'をドロー。')}
-function runCpuTurn(prefix){if(phase==='over')return;phase='cpu';turns.cpu++;const logs=[prefix,'―― CPUの'+turns.cpu+'番目 ――'];if(!cpu.deck.length)return finish('player','CPUが山札からカードを引けない！');draw(cpu);logs.push('🤖 山札から1枚ドロー');cpuDeploy(logs);cpuEvolve(logs);cpuAttach(logs);cpuRetreat(logs);const result=cpuAttack(logs);if(result==='over')return;if(result==='promote'){phase='promote';render();say(logs.join('\n')+'\n🔄 ベンチから次のバトルポケモンを選んでね');return}beginPlayerTurn(logs.join('\n'))}
+function runCpuTurn(prefix){if(phase==='over')return;phase='cpu';turns.cpu++;const logs=[prefix,'―― CPUの'+turns.cpu+'番目 ――'];if(!cpu.deck.length)return finish('player','CPUが山札からカードを引けない！');draw(cpu);logs.push('🤖 山札から1枚ドロー');cpuUseTrainer(logs);cpuDeploy(logs);cpuEvolve(logs);cpuAttach(logs);cpuRetreat(logs);const result=cpuAttack(logs);if(result==='over')return;if(result==='promote'){phase='promote';render();say(logs.join('\n')+'\n🔄 ベンチから次のバトルポケモンを選んでね');return}beginPlayerTurn(logs.join('\n'))}
 function endTurn(){if(phase!=='player')return;if(!player.active)return say('❌ バトル場にポケモンを出してね');runCpuTurn('自分の番を終了。')}
 function cardButton(k,sub,fn,sel=false){const c=cards[k],b=document.createElement('button');b.className='card'+(sel?' selected':'');const strong=document.createElement('strong');strong.textContent=(c.type==='energy'?'⚡ ':c.type==='trainer'?'🧰 ':'🐾 ')+c.name;const small=document.createElement('span');small.className='small';small.textContent=sub;b.append(strong,small);b.onclick=fn;return b}
 function monText(m){const c=cards[m.key];return c.name+' / HP '+Math.max(0,c.hp-m.receivedDamage)+'/'+c.hp+' / ⚡'+m.energy}
