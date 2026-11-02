@@ -4,21 +4,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ちゃっぴーTCG β1.0.1</title>
+<title>ちゃっぴーTCG β1.1</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0 auto;max-width:760px;background:#10192c;color:white;font-family:system-ui,-apple-system,sans-serif;padding:14px}
+body{margin:0 auto;max-width:780px;background:#10192c;color:#fff;font-family:system-ui,-apple-system,sans-serif;padding:14px}
 h1{font-size:23px}
 h2{font-size:17px;margin:0 0 9px}
 section{background:#20314c;border-radius:14px;padding:13px;margin:11px 0}
 button{background:#ffd063;color:#282318;border:0;border-radius:10px;padding:10px;font-weight:650;margin:3px}
-button:disabled{opacity:.45}
-.card{background:#365273;color:white;border:2px solid transparent;border-radius:10px;text-align:left;min-width:110px;padding:10px;display:inline-flex;flex-direction:column;gap:4px}
+button:disabled{opacity:.4}
+.card{background:#365273;color:#fff;border:2px solid transparent;border-radius:10px;text-align:left;min-width:110px;padding:10px;display:inline-flex;flex-direction:column;gap:4px}
 .selected{border-color:#ffd063}
 .slot{border:1px dashed #8196b1;border-radius:10px;padding:7px;min-height:80px;display:flex;justify-content:center;align-items:center}
 .bench{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 .hand,.actions,.counts{display:flex;gap:5px;flex-wrap:wrap}
-.counts{gap:14px;font-weight:650}
+.counts{gap:13px;font-weight:650}
 .muted,.small{color:#bbcee5;font-size:12px}
 .log{white-space:pre-wrap;color:#ffe29a;min-height:40px}
 .enemy{background:#46374e;border-radius:10px;padding:10px;margin:5px 0}
@@ -26,16 +26,14 @@ button:disabled{opacity:.45}
 </style>
 </head>
 <body>
-<h1>⚡ちゃっぴーTCG β1.0.1</h1>
-<p class="muted">CPU攻撃修正版。カードのHP・ワザ・デッキは検証用の仮設定です。</p>
+<h1>⚡ちゃっぴーTCG β1.1</h1>
+<p class="muted">CPUデッキ・手札・進化のテスト版。カード内容は公式ではない仮データです。</p>
 
 <section>
 <h2 id="turn"></h2>
 <div class="counts">
-<span id="deckCount"></span>
-<span id="handCount"></span>
-<span id="prizeCount"></span>
-<span id="cpuPrize"></span>
+<span id="mineCount"></span>
+<span id="cpuCount"></span>
 </div>
 <p class="notice" id="status"></p>
 <p id="energyStatus"></p>
@@ -43,11 +41,10 @@ button:disabled{opacity:.45}
 <button id="next">番を終える・CPU行動</button>
 <button id="reset">新しい対戦</button>
 </div>
-<p class="muted">「番を終える」を1回押すとCPUが行動します。</p>
 </section>
 
 <section>
-<h2>CPUバトル場</h2>
+<h2>🤖 CPUバトル場</h2>
 <div id="enemy" class="enemy"></div>
 <h2>CPUベンチ</h2>
 <div id="enemyBench" class="bench"></div>
@@ -68,7 +65,7 @@ button:disabled{opacity:.45}
 <section>
 <h2>手札</h2>
 <div id="hand" class="hand"></div>
-<p class="muted">場のポケモンを選択してからエネルギー・進化カードをタップ。きぜつ後はベンチから交代先を選択。</p>
+<p class="muted">たねポケモンをタップして場へ。場のポケモンを選んでからエネルギーや進化カードをタップしてね。</p>
 </section>
 
 <section>
@@ -81,518 +78,739 @@ button:disabled{opacity:.45}
 <script>
 'use strict';
 
-// すべて動作検証用の仮データ。
+// 全データは動作検証用の仮設定。
+// 公式カードの性能ではありません。
 const cards={
-pamo:{
-name:'パモ',stage:0,hp:70,
-attacks:[{name:'でんきショック（仮）',cost:1,damage:20}]
-},
-pawmo:{
-name:'パモット',stage:1,from:'パモ',hp:90,
-attacks:[{name:'スパーク（仮）',cost:2,damage:40}]
-},
-pawmot:{
-name:'パーモット',stage:2,from:'パモット',hp:150,
-attacks:[{name:'らいげき（仮）',cost:3,damage:100}]
-},
-pikachu:{
-name:'ピカチュウex',stage:0,hp:190,ex:true,
-attacks:[
-{name:'でんこうせっか（仮）',cost:1,damage:30},
-{name:'10まんボルト（仮）',cost:3,damage:120}
-]
-},
-magnemite:{
-name:'コイル',stage:0,hp:60,
-attacks:[{name:'たいあたり（仮）',cost:1,damage:10}]
-},
-magneton:{
-name:'レアコイル',stage:1,from:'コイル',hp:100,
-attacks:[{name:'でんじほう（仮）',cost:2,damage:50}]
-},
-energy:{name:'基本雷エネルギー',type:'energy'},
-item:{name:'テスト用グッズ',type:'trainer'}
+  pamo:{
+    name:'パモ',stage:0,hp:70,
+    attacks:[{name:'でんきショック（仮）',cost:1,damage:20}]
+  },
+  pawmo:{
+    name:'パモット',stage:1,from:'パモ',hp:90,
+    attacks:[{name:'スパーク（仮）',cost:2,damage:40}]
+  },
+  pawmot:{
+    name:'パーモット',stage:2,from:'パモット',hp:150,
+    attacks:[{name:'らいげき（仮）',cost:3,damage:100}]
+  },
+  pikachu:{
+    name:'ピカチュウex',stage:0,hp:190,ex:true,
+    attacks:[
+      {name:'でんこうせっか（仮）',cost:1,damage:30},
+      {name:'10まんボルト（仮）',cost:3,damage:120}
+    ]
+  },
+  magnemite:{
+    name:'コイル',stage:0,hp:60,
+    attacks:[{name:'たいあたり（仮）',cost:1,damage:10}]
+  },
+  magneton:{
+    name:'レアコイル',stage:1,from:'コイル',hp:100,
+    attacks:[{name:'でんじほう（仮）',cost:2,damage:50}]
+  },
+  energy:{name:'基本雷エネルギー',type:'energy'},
+  item:{name:'テスト用グッズ',type:'trainer'}
 };
 
-const counts={
-pamo:4,pawmo:4,pawmot:3,pikachu:4,
-magnemite:4,magneton:3,energy:30,item:8
+const recipe={
+  pamo:4,pawmo:4,pawmot:3,pikachu:4,
+  magnemite:4,magneton:3,energy:30,item:8
 };
-
-// 攻撃力と受けたダメージを別々に管理。
-const cpuList=[
-{name:'練習ポケモンA',hp:70,prize:1,cost:1,attackDamage:20},
-{name:'練習ポケモンex B',hp:110,prize:2,cost:2,attackDamage:40},
-{name:'練習ポケモンC',hp:90,prize:1,cost:2,attackDamage:30},
-{name:'練習ポケモンex D',hp:140,prize:2,cost:3,attackDamage:60}
-];
-
-let turn,deck,hand,prizes,active,bench,selected;
-let enemy,enemyBench,cpuTaken,energyUsed,attacked,phase,uid,history;
 
 const $=id=>document.getElementById(id);
 
-function say(s){
-history.unshift(s);
-history=history.slice(0,14);
-$('log').textContent=history.join('\n\n');
-}
+let player,cpu,turn,phase,selected;
+let energyUsed,attacked,history,uid;
 
 function shuffle(a){
-a=a.slice();
-for(let i=a.length-1;i>0;i--){
-const j=Math.floor(Math.random()*(i+1));
-[a[i],a[j]]=[a[j],a[i]];
-}
-return a;
+  a=a.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
 }
 
 function makeDeck(){
-const a=[];
-for(const [k,n] of Object.entries(counts)){
-for(let i=0;i<n;i++)a.push(k);
-}
-if(a.length!==60)throw Error('デッキが60枚ではない');
-return shuffle(a);
-}
-
-function draw(){
-if(!deck.length)return null;
-const k=deck.pop();
-hand.push(k);
-return k;
+  const a=[];
+  for(const [k,n] of Object.entries(recipe)){
+    for(let i=0;i<n;i++)a.push(k);
+  }
+  if(a.length!==60)throw Error('60枚ではありません');
+  return shuffle(a);
 }
 
-function mon(k){
-return{
-id:++uid,key:k,entered:turn,
-evolved:-1,energy:[],receivedDamage:0
-};
+function draw(p){
+  if(!p.deck.length)return null;
+  const k=p.deck.pop();
+  p.hand.push(k);
+  return k;
 }
 
-function cpuMon(x){
-return{
-...x,
-receivedDamage:0,
-energy:0
-};
+function pokemon(k){
+  return {
+    id:++uid,
+    key:k,
+    entered:turn,
+    evolved:-1,
+    energy:0,
+    receivedDamage:0
+  };
+}
+
+function newSide(){
+  const p={
+    deck:[],
+    hand:[],
+    prizes:[],
+    active:null,
+    bench:[]
+  };
+
+  let retry=0;
+
+  do{
+    p.deck=makeDeck();
+    p.hand=[];
+    for(let i=0;i<7;i++)draw(p);
+    retry++;
+  }while(
+    !p.hand.some(k=>cards[k].stage===0)
+    &&retry<100
+  );
+
+  if(!p.hand.some(k=>cards[k].stage===0)){
+    throw Error('初手を作れません');
+  }
+
+  for(let i=0;i<6;i++){
+    p.prizes.push(p.deck.pop());
+  }
+
+  return p;
+}
+
+function say(s){
+  history.unshift(s);
+  history=history.slice(0,20);
+  $('log').textContent=history.join('\n\n');
+}
+
+function takeHand(p,i){
+  return p.hand.splice(i,1)[0];
+}
+
+function cpuDeploy(logs){
+  // 手札のたねポケモンを場に出す。
+  while(cpu.bench.length<5){
+    const i=cpu.hand.findIndex(k=>cards[k].stage===0);
+    if(i<0)break;
+
+    const k=takeHand(cpu,i);
+    const m=pokemon(k);
+
+    if(!cpu.active){
+      cpu.active=m;
+      logs.push('🤖 '+cards[k].name+'をバトル場へ');
+    }else{
+      cpu.bench.push(m);
+      logs.push('🤖 '+cards[k].name+'をベンチへ');
+    }
+  }
 }
 
 function reset(){
-turn=1;
-uid=0;
-active=null;
-bench=[];
-selected=null;
-cpuTaken=0;
-energyUsed=false;
-attacked=false;
-phase='player';
-history=[];
+  turn=1;
+  uid=0;
+  phase='player';
+  selected=null;
+  energyUsed=false;
+  attacked=false;
+  history=[];
 
-let retries=0;
-do{
-deck=makeDeck();
-hand=[];
-for(let i=0;i<7;i++)draw();
-if(hand.some(k=>cards[k].stage===0))break;
-retries++;
-}while(true);
+  player=newSide();
+  cpu=newSide();
 
-prizes=[];
-for(let i=0;i<6;i++)prizes.push(deck.pop());
+  const logs=[];
+  cpuDeploy(logs);
 
-const first=draw();
-enemy=cpuMon(cpuList[0]);
-enemyBench=cpuList.slice(1).map(cpuMon);
+  const a=draw(player);
+  draw(cpu);
 
-render();
-say(
-'対戦開始！ 最初のドロー：'+cards[first].name+'。'+
-(retries?'引き直し'+retries+'回。':'')+
-'たねポケモンを出そう！'
-);
+  render();
+
+  say(
+    '対戦開始！ 自分の初回ドロー：'+
+    cards[a].name+
+    '。CPU初回ドロー：非公開。\n'+
+    logs.join('\n')+
+    '\n自分のたねポケモンを出そう！'
+  );
 }
 
 function chosen(){
-return selected==='active'
-?active
-:Number.isInteger(selected)?bench[selected]:null;
+  return selected==='active'
+    ?player.active
+    :Number.isInteger(selected)
+      ?player.bench[selected]
+      :null;
 }
 
-function selectSlot(s){
-if(phase==='promote'){
-if(!Number.isInteger(s)||!bench[s]){
-return say('❌ ベンチから交代先を選んでね。');
-}
-active=bench.splice(s,1)[0];
-selected='active';
-phase='player';
-render();
-return say(
-'🔄 '+cards[active.key].name+
-'をバトル場へ！ 自分の番を始めよう。'
-);
-}
+function choose(s){
+  if(phase==='promote'){
+    if(!Number.isInteger(s)||!player.bench[s]){
+      return say('❌ ベンチから交代先を選んでね');
+    }
 
-if(phase!=='player'||attacked){
-return say('❌ 今はポケモンを選択できないよ。');
-}
-if(s==='active'&&!active)return;
-if(Number.isInteger(s)&&!bench[s])return;
+    player.active=player.bench.splice(s,1)[0];
+    selected='active';
 
-selected=s;
-render();
-say('選択：'+cards[chosen().key].name);
+    startPlayerTurn(
+      '🔄 '+cards[player.active.key].name+
+      'をバトル場へ。'
+    );
+    return;
+  }
+
+  if(phase!=='player'||attacked){
+    return say('❌ 今は選択できないよ');
+  }
+
+  if(s==='active'&&!player.active)return;
+  if(Number.isInteger(s)&&!player.bench[s])return;
+
+  selected=s;
+  render();
+  say('選択：'+cards[chosen().key].name);
 }
 
 function play(i){
-if(phase!=='player'||attacked){
-return say('❌ 今は手札を使えないよ。');
-}
-const k=hand[i],c=cards[k];
-if(!c)return;
+  if(phase!=='player'||attacked){
+    return say('❌ 今は手札を使えないよ');
+  }
 
-if(c.type==='trainer'){
-return say('ℹ️ グッズはまだ未実装だよ。');
-}
+  const k=player.hand[i];
+  const c=cards[k];
+  if(!c)return;
 
-if(c.type==='energy'){
-const t=chosen();
-if(!t)return say('❌ 先に場のポケモンを選んでね。');
-if(energyUsed){
-return say('❌ 手貼りは1ターン1枚まで！');
-}
-t.energy.push(k);
-hand.splice(i,1);
-energyUsed=true;
-render();
-return say(
-'⚡ '+cards[t.key].name+
-'にエネルギーを1枚付けたよ。'
-);
-}
+  if(c.type==='trainer'){
+    return say('ℹ️ グッズは未実装');
+  }
 
-if(c.stage===0){
-if(!active){
-active=mon(k);
-selected='active';
-}else if(bench.length<5){
-bench.push(mon(k));
-selected=bench.length-1;
-}else{
-return say('❌ ベンチは5匹まで！');
-}
-hand.splice(i,1);
-render();
-return say('✅ '+c.name+'を場に出したよ。');
-}
+  if(c.type==='energy'){
+    const t=chosen();
 
-const t=chosen();
-if(!t)return say('❌ 進化するポケモンを選んでね。');
-const b=cards[t.key];
+    if(!t){
+      return say('❌ 先にポケモンを選んでね');
+    }
+    if(energyUsed){
+      return say('❌ 手貼りは1ターン1枚まで');
+    }
 
-if(turn===1||t.entered===turn){
-return say('❌ このポケモンはまだ進化できないよ。');
-}
-if(t.evolved===turn){
-return say('❌ 同じ番に再進化できないよ。');
-}
-if(c.from!==b.name||c.stage!==b.stage+1){
-return say('❌ 進化元が違うよ。');
-}
+    t.energy++;
+    takeHand(player,i);
+    energyUsed=true;
+    render();
 
-t.key=k;
-t.evolved=turn;
-hand.splice(i,1);
-render();
-say(
-'✅ '+b.name+' → '+c.name+
-'に進化！ エネルギーとダメージを引き継いだよ。'
-);
-}
+    return say(
+      '⚡ '+cards[t.key].name+
+      'にエネルギーを付けた'
+    );
+  }
 
-function finish(winner,why){
-phase='over';
-render();
-say(
-(winner==='player'?'🏆 勝利！ ':'💀 敗北… ')+why
-);
-}
+  if(c.stage===0){
+    if(!player.active){
+      player.active=pokemon(k);
+      selected='active';
+    }else if(player.bench.length<5){
+      player.bench.push(pokemon(k));
+      selected=player.bench.length-1;
+    }else{
+      return say('❌ ベンチは5匹まで');
+    }
 
-function playerAttack(i){
-if(phase!=='player'||attacked||!active||!enemy)return;
+    takeHand(player,i);
+    render();
+    return say('✅ '+c.name+'を場に出した');
+  }
 
-const a=cards[active.key].attacks[i];
-if(!a)return;
+  const t=chosen();
+  if(!t){
+    return say('❌ 進化するポケモンを選んでね');
+  }
 
-if(active.energy.length<a.cost){
-return say(
-'❌ エネルギー不足！ 必要'+a.cost+
-'枚、現在'+active.energy.length+'枚。'
-);
+  const b=cards[t.key];
+
+  if(
+    turn===1||
+    t.entered===turn||
+    t.evolved===turn
+  ){
+    return say('❌ この番は進化できないよ');
+  }
+
+  if(
+    c.from!==b.name||
+    c.stage!==b.stage+1
+  ){
+    return say('❌ 進化元が違うよ');
+  }
+
+  t.key=k;
+  t.evolved=turn;
+  takeHand(player,i);
+  render();
+
+  say(
+    '✅ '+b.name+' → '+c.name+
+    '！ エネルギーとダメージを引き継いだ'
+  );
 }
 
-attacked=true;
-enemy.receivedDamage+=a.damage;
-let msg='💥 '+a.name+'で'+a.damage+'ダメージ！';
+function finish(who,why){
+  phase='over';
+  render();
 
-if(enemy.receivedDamage>=enemy.hp){
-const defeated=enemy;
-const taken=prizes.splice(0,defeated.prize);
-hand.push(...taken);
-
-msg+=' '+defeated.name+
-'がきぜつ！ サイド'+taken.length+'枚獲得。';
-
-if(prizes.length===0){
-return finish('player',msg+' サイドを取り切った！');
-}
-if(!enemyBench.length){
-return finish('player',msg+' CPUの場にポケモンがいなくなった！');
+  say(
+    (who==='player'?'🏆 勝利！ ':'💀 敗北… ')+why
+  );
 }
 
-enemy=enemyBench.shift();
-msg+=' CPUは'+enemy.name+'をバトル場に出した。';
-}else{
-msg+=' CPUの残りHP '+
-(enemy.hp-enemy.receivedDamage)+'。';
+function award(attacker,defender,defeated,logs){
+  const n=cards[defeated.key].ex?2:1;
+  const taken=attacker.prizes.splice(0,n);
+
+  attacker.hand.push(...taken);
+
+  logs.push(
+    (attacker===cpu?'🤖 CPU':'自分')+
+    'がサイド'+taken.length+'枚取得！'
+  );
+
+  if(attacker.prizes.length===0){
+    finish(
+      attacker===player?'player':'cpu',
+      logs.join('\n')+' サイドを取り切った！'
+    );
+    return true;
+  }
+
+  if(!defender.active&&!defender.bench.length){
+    finish(
+      attacker===player?'player':'cpu',
+      logs.join('\n')+' 相手の場にポケモンがいない！'
+    );
+    return true;
+  }
+
+  return false;
 }
 
-render();
-say(msg+' 「番を終える」でCPUの番へ。');
+function attack(i){
+  if(
+    phase!=='player'||
+    attacked||
+    !player.active||
+    !cpu.active
+  )return;
+
+  const a=cards[player.active.key].attacks[i];
+  if(!a)return;
+
+  if(player.active.energy<a.cost){
+    return say(
+      '❌ エネルギー不足！ 必要'+
+      a.cost+'枚、現在'+
+      player.active.energy+'枚'
+    );
+  }
+
+  attacked=true;
+  cpu.active.receivedDamage+=a.damage;
+
+  const logs=[
+    '💥 '+a.name+'で'+a.damage+'ダメージ！'
+  ];
+
+  if(
+    cpu.active.receivedDamage>=
+    cards[cpu.active.key].hp
+  ){
+    const fainted=cpu.active;
+
+    logs.push(
+      '🤖 '+cards[fainted.key].name+'がきぜつ！'
+    );
+
+    cpu.active=null;
+
+    if(award(player,cpu,fainted,logs))return;
+
+    if(cpu.bench.length){
+      cpu.active=cpu.bench.shift();
+
+      logs.push(
+        '🤖 '+cards[cpu.active.key].name+
+        'がバトル場へ'
+      );
+    }
+  }else{
+    logs.push(
+      'CPU残りHP '+
+      (cards[cpu.active.key].hp-
+       cpu.active.receivedDamage)
+    );
+  }
+
+  render();
+  say(logs.join('\n')+'\n番を終えてCPUへ。');
 }
 
-function cpuTurn(){
-if(phase!=='player'||!active||!enemy)return;
+function cpuEvolve(logs){
+  const targets=[
+    cpu.active,...cpu.bench
+  ].filter(Boolean);
 
-phase='cpu';
-const logs=[];
+  for(const t of targets){
+    if(
+      t.entered===turn||
+      t.evolved===turn
+    )continue;
 
-enemy.energy++;
-logs.push(
-'🤖 CPU：'+enemy.name+
-'にエネルギーを1枚付けた（合計'+enemy.energy+'枚）。'
-);
+    const b=cards[t.key];
 
-if(enemy.energy>=enemy.cost){
-const dmg=enemy.attackDamage;
-active.receivedDamage+=dmg;
+    const i=cpu.hand.findIndex(k=>
+      cards[k].stage===b.stage+1&&
+      cards[k].from===b.name
+    );
 
-logs.push(
-'💥 CPUの攻撃！ '+cards[active.key].name+
-'に'+dmg+'ダメージ。残りHP '+
-Math.max(0,cards[active.key].hp-active.receivedDamage)+'。'
-);
+    if(i>=0){
+      const k=takeHand(cpu,i);
+      t.key=k;
+      t.evolved=turn;
 
-if(active.receivedDamage>=cards[active.key].hp){
-const fainted=cards[active.key];
-const n=fainted.ex?2:1;
-
-cpuTaken=Math.min(6,cpuTaken+n);
-
-logs.push(
-'💀 '+fainted.name+
-'がきぜつ！ CPUがサイド'+n+'枚取得。'
-);
-
-active=null;
-selected=null;
-
-if(cpuTaken>=6){
-return finish(
-'cpu',
-logs.join('\n')+' CPUがサイドを取り切った。'
-);
+      logs.push(
+        '🤖 '+b.name+' → '+
+        cards[k].name+'に進化！'
+      );
+    }
+  }
 }
 
-if(!bench.length){
-return finish(
-'cpu',
-logs.join('\n')+' ベンチが空なので敗北。'
-);
+function cpuAttach(logs){
+  const i=cpu.hand.indexOf('energy');
+
+  if(i<0){
+    logs.push('🤖 手札にエネルギーなし');
+    return;
+  }
+
+  const targets=[
+    cpu.active,...cpu.bench
+  ].filter(Boolean);
+
+  if(!targets.length)return;
+
+  const target=
+    targets.find(t=>
+      t===cpu.active&&
+      cards[t.key].attacks.some(a=>a.cost>t.energy)
+    )||
+    targets.find(t=>
+      cards[t.key].attacks.some(a=>a.cost>t.energy)
+    )||
+    cpu.active;
+
+  target.energy++;
+  takeHand(cpu,i);
+
+  logs.push(
+    '🤖 '+cards[target.key].name+
+    'にエネルギーを1枚付けた（合計'+
+    target.energy+'枚）'
+  );
 }
 
-phase='promote';
-render();
-return say(
-logs.join('\n')+
-'\n🔄 ベンチから次のバトルポケモンを選んでね。'
-);
-}
-}else{
-logs.push(
-'🤖 CPU：必要エネルギー'+enemy.cost+
-'枚に足りず攻撃できなかった。'
-);
+function cpuAttack(logs){
+  if(!cpu.active||!player.active)return;
+
+  const available=
+    cards[cpu.active.key].attacks.filter(
+      a=>a.cost<=cpu.active.energy
+    );
+
+  if(!available.length){
+    logs.push(
+      '🤖 エネルギー不足で攻撃できない'
+    );
+    return;
+  }
+
+  available.sort(
+    (a,b)=>b.damage-a.damage
+  );
+
+  const a=available[0];
+
+  player.active.receivedDamage+=a.damage;
+
+  logs.push(
+    '💥 CPUの'+a.name+'！ '+
+    a.damage+'ダメージ。自分の残りHP '+
+    Math.max(
+      0,
+      cards[player.active.key].hp-
+      player.active.receivedDamage
+    )
+  );
+
+  if(
+    player.active.receivedDamage>=
+    cards[player.active.key].hp
+  ){
+    const fainted=player.active;
+
+    logs.push(
+      '💀 '+cards[fainted.key].name+
+      'がきぜつ！'
+    );
+
+    player.active=null;
+    selected=null;
+
+    if(award(cpu,player,fainted,logs)){
+      return 'over';
+    }
+
+    if(player.bench.length){
+      return 'promote';
+    }
+  }
+
+  return 'ok';
 }
 
-if(!deck.length){
-return finish(
-'cpu',
-logs.join('\n')+
-' 次の自分の番に山札を引けない。'
-);
+function startPlayerTurn(prefix){
+  if(!player.deck.length){
+    return finish(
+      'cpu',
+      prefix+'\n山札からカードを引けない！'
+    );
+  }
+
+  turn++;
+  energyUsed=false;
+  attacked=false;
+  phase='player';
+
+  const k=draw(player);
+
+  render();
+
+  say(
+    prefix+'\n📥 自分の番 '+
+    turn+'：'+cards[k].name+
+    'をドロー。'
+  );
 }
 
-turn++;
-energyUsed=false;
-attacked=false;
-phase='player';
+function endTurn(){
+  if(phase!=='player')return;
 
-const k=draw();
-render();
-say(
-logs.join('\n')+
-'\n📥 自分の番 '+turn+
-'：'+cards[k].name+'をドロー。'
-);
-}
+  if(!player.active){
+    return say(
+      '❌ バトル場にポケモンを出してね'
+    );
+  }
 
-function next(){
-if(phase==='over')return;
+  phase='cpu';
 
-if(phase==='promote'){
-return say('❌ まずベンチから交代先を選んでね。');
-}
-if(!active){
-return say('❌ バトル場にポケモンを出してね。');
-}
+  const logs=['―― CPUの番 ――'];
 
-cpuTurn();
+  if(!cpu.deck.length){
+    return finish(
+      'player',
+      'CPUが山札からカードを引けない！'
+    );
+  }
+
+  draw(cpu);
+  logs.push('🤖 山札から1枚ドロー');
+
+  cpuDeploy(logs);
+  cpuEvolve(logs);
+  cpuAttach(logs);
+
+  const result=cpuAttack(logs);
+
+  if(result==='over')return;
+
+  if(result==='promote'){
+    phase='promote';
+    render();
+
+    return say(
+      logs.join('\n')+
+      '\n🔄 ベンチから次のバトルポケモンを選んでね'
+    );
+  }
+
+  startPlayerTurn(logs.join('\n'));
 }
 
 function cardButton(k,sub,fn,sel=false){
-const c=cards[k];
-const b=document.createElement('button');
-b.className='card'+(sel?' selected':'');
+  const c=cards[k];
+  const b=document.createElement('button');
 
-const strong=document.createElement('strong');
-strong.textContent=
-(c.type==='energy'?'⚡ ':
-c.type==='trainer'?'🧰 ':'🐾 ')+c.name;
+  b.className='card'+(sel?' selected':'');
 
-const small=document.createElement('span');
-small.className='small';
-small.textContent=sub;
+  const strong=document.createElement('strong');
+  strong.textContent=
+    (c.type==='energy'?'⚡ ':
+     c.type==='trainer'?'🧰 ':'🐾 ')+
+    c.name;
 
-b.append(strong,small);
-b.onclick=fn;
-return b;
+  const small=document.createElement('span');
+  small.className='small';
+  small.textContent=sub;
+
+  b.append(strong,small);
+  b.onclick=fn;
+
+  return b;
+}
+
+function monText(m){
+  const c=cards[m.key];
+
+  return c.name+
+    ' / HP '+
+    Math.max(0,c.hp-m.receivedDamage)+
+    '/'+c.hp+
+    ' / ⚡'+m.energy;
 }
 
 function render(){
-$('turn').textContent='自分の番：'+turn;
-$('deckCount').textContent='山札 '+deck.length;
-$('handCount').textContent='手札 '+hand.length;
-$('prizeCount').textContent='自分の残りサイド '+prizes.length;
-$('cpuPrize').textContent='CPU取得サイド '+cpuTaken+'/6';
+  $('turn').textContent='自分の番：'+turn;
 
-$('status').textContent={
-player:attacked?'⚔️ 攻撃済み・番を終了してね':'🟢 自分の操作中',
-cpu:'🤖 CPU行動中',
-promote:'🔄 交代先を選択',
-over:'🏁 対戦終了'
-}[phase];
+  $('mineCount').textContent=
+    '自分：山札'+player.deck.length+
+    ' 手札'+player.hand.length+
+    ' サイド'+player.prizes.length;
 
-$('energyStatus').textContent=
-'⚡ 手貼り：'+(energyUsed?'使用済み':'未使用');
+  $('cpuCount').textContent=
+    'CPU：山札'+cpu.deck.length+
+    ' 手札'+cpu.hand.length+
+    ' サイド'+cpu.prizes.length;
 
-$('next').textContent='番を終える・CPU行動';
-$('next').disabled=phase!=='player';
+  $('status').textContent=({
+    player:attacked
+      ?'⚔️ 攻撃済み・番を終えてね'
+      :'🟢 自分の操作中',
+    cpu:'🤖 CPU行動中',
+    promote:'🔄 ベンチから交代先を選択',
+    over:'🏁 対戦終了'
+  })[phase];
 
-$('enemy').textContent=enemy
-?enemy.name+
-' / HP '+Math.max(0,enemy.hp-enemy.receivedDamage)+
-'/'+enemy.hp+
-' / ⚡'+enemy.energy+
-'枚 / ワザ '+enemy.attackDamage+
-'ダメージ（必要⚡'+enemy.cost+'） / サイド'+enemy.prize
-:'なし';
+  $('energyStatus').textContent=
+    '⚡ 手貼り：'+
+    (energyUsed?'使用済み':'未使用');
 
-$('enemyBench').replaceChildren();
+  $('next').disabled=phase!=='player';
 
-enemyBench.forEach(e=>{
-const d=document.createElement('div');
-d.className='enemy';
-d.textContent=e.name+' / HP '+e.hp+' / サイド'+e.prize;
-$('enemyBench').append(d);
-});
+  $('enemy').textContent=cpu.active
+    ?monText(cpu.active)
+    :'なし';
 
-if(!enemyBench.length){
-$('enemyBench').textContent='ベンチなし';
+  $('enemyBench').replaceChildren();
+
+  cpu.bench.forEach(m=>{
+    const d=document.createElement('div');
+    d.className='enemy';
+    d.textContent=monText(m);
+    $('enemyBench').append(d);
+  });
+
+  if(!cpu.bench.length){
+    $('enemyBench').textContent='ベンチなし';
+  }
+
+  $('active').replaceChildren();
+
+  if(player.active){
+    $('active').append(
+      cardButton(
+        player.active.key,
+        monText(player.active),
+        ()=>choose('active'),
+        selected==='active'
+      )
+    );
+  }else{
+    $('active').textContent='空き';
+  }
+
+  $('attacks').replaceChildren();
+
+  if(player.active){
+    cards[player.active.key].attacks.forEach(
+      (a,i)=>{
+        const b=document.createElement('button');
+
+        b.textContent=
+          a.name+' ⚡'+a.cost+
+          ' / '+a.damage+'ダメージ';
+
+        b.disabled=
+          phase!=='player'||attacked;
+
+        b.onclick=()=>attack(i);
+
+        $('attacks').append(b);
+      }
+    );
+  }
+
+  $('bench').replaceChildren();
+
+  for(let i=0;i<5;i++){
+    const d=document.createElement('div');
+    d.className='slot';
+
+    if(player.bench[i]){
+      d.append(
+        cardButton(
+          player.bench[i].key,
+          monText(player.bench[i]),
+          ()=>choose(i),
+          selected===i
+        )
+      );
+    }else{
+      d.textContent='空き '+(i+1);
+    }
+
+    $('bench').append(d);
+  }
+
+  $('hand').replaceChildren();
+
+  player.hand.forEach((k,i)=>{
+    $('hand').append(
+      cardButton(k,'手札',()=>play(i))
+    );
+  });
+
+  const t=chosen();
+
+  $('selected').textContent=t
+    ?monText(t)
+    :'なし';
 }
 
-$('active').replaceChildren();
-
-if(active){
-$('active').append(
-cardButton(
-active.key,
-'HP '+
-Math.max(0,cards[active.key].hp-active.receivedDamage)+
-'/'+cards[active.key].hp+
-' ⚡'+active.energy.length,
-()=>selectSlot('active'),
-selected==='active'
-)
-);
-}else{
-$('active').textContent='空き';
-}
-
-$('attacks').replaceChildren();
-
-if(active){
-cards[active.key].attacks.forEach((a,i)=>{
-const b=document.createElement('button');
-b.textContent=
-a.name+' ⚡'+a.cost+' / '+a.damage+'ダメージ';
-b.disabled=phase!=='player'||attacked;
-b.onclick=()=>playerAttack(i);
-$('attacks').append(b);
-});
-}
-
-$('bench').replaceChildren();
-
-for(let i=0;i<5;i++){
-const d=document.createElement('div');
-d.className='slot';
-
-if(bench[i]){
-d.append(
-cardButton(
-bench[i].key,
-'HP '+
-Math.max(0,cards[bench[i].key].hp-bench[i].receivedDamage)+
-'/'+cards[bench[i].key].hp+
-' ⚡'+bench[i].energy.length,
-()=>selectSlot(i),
-selected===i
-)
-);
-}else{
-d.textContent='空き '+(i+1);
-}
-
-$('bench').append(d);
-}
-
-$('hand').replaceChildren();
-
-hand.forEach((k,i)=>{
-$('hand').append(cardButton(k,'手札',()=>play(i)));
-});
-
-const t=chosen();
-$('selected').textContent=t
-?cards[t.key].name+' ⚡'+t.energy.length+'枚'
-:'なし';
-}
-
-$('next').onclick=next;
+$('next').onclick=endTurn;
 $('reset').onclick=reset;
+
 reset();
 </script>
 </body>
