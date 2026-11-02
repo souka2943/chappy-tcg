@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ちゃっぴーTCG β1.3</title>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ちゃっぴーTCG β1.4.1</title>
 <style>
 *{box-sizing:border-box}body{margin:0 auto;max-width:780px;padding:14px;background:#10192c;color:#fff;font-family:system-ui,sans-serif}h1{font-size:23px}h2{font-size:17px;margin:0 0 9px}section{background:#20314c;border-radius:14px;padding:13px;margin:11px 0}button{background:#ffd063;color:#282318;border:0;border-radius:10px;padding:10px;font-weight:650;margin:3px;cursor:pointer}button:disabled{opacity:.4;cursor:default}.card{background:#365273;color:#fff;border:2px solid transparent;border-radius:10px;text-align:left;min-width:110px;padding:10px;display:inline-flex;flex-direction:column;gap:4px}.selected{border-color:#ffd063}.slot{border:1px dashed #8196b1;border-radius:10px;padding:7px;min-height:75px;display:flex;justify-content:center;align-items:center}.bench{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.hand,.actions,.counts{display:flex;gap:5px;flex-wrap:wrap}.counts{gap:13px;font-weight:650}.muted,.small{color:#bbcee5;font-size:12px}.log{white-space:pre-wrap;color:#ffe29a;min-height:40px}.enemy{background:#46374e;border-radius:10px;padding:10px;margin:5px 0}.notice{color:#ffe29a;font-weight:700}.hide{display:none!important}.coin{font-size:48px;text-align:center;margin:10px}.info{border-left:3px solid #ffd063;padding-left:9px}.trashlist{display:grid;gap:6px;margin-top:8px}.trashrow{background:#304763;color:#fff;text-align:left;width:100%;margin:0}.tabon{outline:2px solid #fff}.retreathelp{font-size:12px;color:#ffe29a}
 </style></head><body>
-<h1>⚡ちゃっぴーTCG β1.3</h1><p class="muted">🏃 にげる・トラッシュ閲覧検証版。カードの能力・デッキは仮データです。</p>
+<h1>⚡ちゃっぴーTCG β1.4.1</h1><p class="muted">🤖 CPUのにげる判断を調整し、判断ログを追加。カードの能力・デッキは仮データです。</p>
 <section id="setup"><h2>🪙 コイントス</h2><p id="coinMessage">オモテかウラを予想してね！</p><div id="coinFace" class="coin">🪙</div><div id="coinButtons" class="actions"><button id="heads">オモテを予想</button><button id="tails">ウラを予想</button></div><div id="orderButtons" class="actions hide"><button id="first">先攻を選ぶ</button><button id="second">後攻を選ぶ</button></div></section>
 <section id="prep" class="hide"><h2>🎒 対戦準備</h2><p id="prepInfo"></p><div id="prepActions" class="actions"></div><p class="muted">初期配置では手札のたねポケモンをタップしてバトル場→ベンチへ配置。配置後に「準備完了」を押してね。</p></section>
 <section><h2 id="turn">対戦準備中</h2><div class="counts"><span id="mineCount"></span><span id="cpuCount"></span></div><p class="notice" id="status"></p><p id="energyStatus"></p><p id="orderInfo" class="info"></p><div class="actions"><button id="next">番を終える・CPU行動</button><button id="reset">新しい対戦</button></div></section>
@@ -81,9 +81,44 @@ function award(attacker,defender,defeated,logs){const n=cards[defeated.key].ex?2
 function attack(i){if(phase!=='player'||attacked||!player.active||!cpu.active)return;if(firstSide==='player'&&turns.player===1)return say('❌ 先攻の最初の番はワザを使えないよ');const a=cards[player.active.key].attacks[i];if(!a)return;if(player.active.energy<a.cost)return say('❌ エネルギー不足！必要'+a.cost+'枚、現在'+player.active.energy+'枚');attacked=true;cpu.active.receivedDamage+=a.damage;const logs=['💥 '+a.name+'で'+a.damage+'ダメージ！'];if(cpu.active.receivedDamage>=cards[cpu.active.key].hp){const fainted=cpu.active;logs.push('🤖 '+cards[fainted.key].name+'がきぜつ！');cpu.active=null;discardPokemon(cpu,fainted);if(award(player,cpu,fainted,logs))return;cpu.active=cpu.bench.shift();logs.push('🤖 '+cards[cpu.active.key].name+'がバトル場へ')}else logs.push('CPU残りHP '+(cards[cpu.active.key].hp-cpu.active.receivedDamage));render();say(logs.join('\n')+'\n番を終えてCPUへ。')}
 function cpuEvolve(logs){if(turns.cpu<=1)return;for(const t of [cpu.active,...cpu.bench].filter(Boolean)){if(t.entered===turns.cpu||t.evolved===turns.cpu)continue;const b=cards[t.key],i=cpu.hand.findIndex(k=>cards[k].stage===b.stage+1&&cards[k].from===b.name);if(i>=0){const k=takeHand(cpu,i);t.key=k;t.evolved=turns.cpu;t.stack.push({key:k,id:++uid});logs.push('🤖 '+b.name+' → '+cards[k].name+'に進化！')}}}
 function cpuAttach(logs){const i=cpu.hand.indexOf('energy');if(i<0){logs.push('🤖 手札にエネルギーなし');return}const targets=[cpu.active,...cpu.bench].filter(Boolean);if(!targets.length)return;const t=targets.find(m=>m===cpu.active&&cards[m.key].attacks.some(a=>a.cost>m.energy))||targets.find(m=>cards[m.key].attacks.some(a=>a.cost>m.energy))||cpu.active;t.energyCards.push({key:takeHand(cpu,i),id:++uid});t.energy=t.energyCards.length;logs.push('🤖 '+cards[t.key].name+'にエネルギーを1枚付けた（合計'+t.energy+'枚）')}
+// CPUのにげる判断：交代後に攻撃できるか、HPが危険か、交代で戦力が上がるかを評価。
+// この版ではワザのダメージ・必要エネルギーはすべて検証用の仮データ。
+function cpuRetreat(logs){
+ if(!cpu.active){logs.push('🤖 にげる判断：バトル場なし');return}
+ const old=cpu.active,card=cards[old.key],cost=card.retreat??0;
+ const remaining=card.hp-old.receivedDamage;
+ const danger=remaining<=Math.max(20,Math.floor(card.hp*0.35));
+ const damage=m=>Math.max(0,...cards[m.key].attacks.filter(a=>a.cost<=m.energy).map(a=>a.damage));
+ const currentDamage=damage(old);
+ const playerRemaining=player.active?cards[player.active.key].hp-player.active.receivedDamage:Infinity;
+ const label='🤖 にげる判断（'+card.name+' 残りHP'+remaining+'）：';
+ if(!cpu.bench.length){logs.push(label+'ベンチなし');return}
+ if(old.energyCards.length<cost){logs.push(label+'必要エネルギー'+cost+'枚に対して'+old.energyCards.length+'枚');return}
+ if(currentDamage>=playerRemaining){logs.push(label+'今のワザで相手をきぜつさせられるため攻撃優先');return}
+ const options=cpu.bench.map((m,i)=>({m,i,hp:cards[m.key].hp-m.receivedDamage,damage:damage(m)})).filter(o=>o.hp>0);
+ if(!options.length){logs.push(label+'交代可能なポケモンなし');return}
+ // 生存を優先する場面では、攻撃できないベンチも候補にする。
+ options.sort((a,b)=>b.hp-a.hp||b.damage-a.damage);
+ let best=null,reason='';
+ if(danger){
+   best=options.find(o=>o.hp>remaining);
+   if(best)reason='残りHPが危険なため生存優先';
+ }else{
+   const viable=options.filter(o=>o.damage>=currentDamage+40&&o.hp>remaining);
+   viable.sort((a,b)=>b.damage-a.damage||b.hp-a.hp);
+   best=viable[0];if(best)reason='より強力なワザを使うため';
+ }
+ if(!best){logs.push(label+(danger?'交代先に今よりHPの多いポケモンがいない':'交代のメリットが小さい'));return}
+ const discarded=old.energyCards.splice(0,cost);
+ old.energy=old.energyCards.length;
+ cpu.trash.push(...discarded);
+ cpu.bench[best.i]=old;
+ cpu.active=best.m;
+ logs.push(label+reason+'。'+cards[best.m.key].name+'へ交代！ エネルギー'+cost+'枚をトラッシュ');
+}
 function cpuAttack(logs){if(firstSide==='cpu'&&turns.cpu===1){logs.push('🤖 先攻1ターン目なので攻撃しない');return'ok'}if(!cpu.active||!player.active)return'ok';const available=cards[cpu.active.key].attacks.filter(a=>a.cost<=cpu.active.energy).sort((a,b)=>b.damage-a.damage);if(!available.length){logs.push('🤖 エネルギー不足で攻撃できない');return'ok'}const a=available[0];player.active.receivedDamage+=a.damage;logs.push('💥 CPUの'+a.name+'！'+a.damage+'ダメージ。自分の残りHP '+Math.max(0,cards[player.active.key].hp-player.active.receivedDamage));if(player.active.receivedDamage>=cards[player.active.key].hp){const fainted=player.active;logs.push('💀 '+cards[fainted.key].name+'がきぜつ！');player.active=null;discardPokemon(player,fainted);selected=null;if(award(cpu,player,fainted,logs))return'over';return'promote'}return'ok'}
 function beginPlayerTurn(prefix){if(phase==='over')return;if(!player.deck.length)return finish('cpu',prefix+'\n自分が山札からカードを引けない！');turns.player++;energyUsed=false;attacked=false;retreatUsed=false;retreatPicking=false;phase='player';const k=draw(player);render();say(prefix+'\n📥 自分の'+turns.player+'番目：'+cards[k].name+'をドロー。')}
-function runCpuTurn(prefix){if(phase==='over')return;phase='cpu';turns.cpu++;const logs=[prefix,'―― CPUの'+turns.cpu+'番目 ――'];if(!cpu.deck.length)return finish('player','CPUが山札からカードを引けない！');draw(cpu);logs.push('🤖 山札から1枚ドロー');cpuDeploy(logs);cpuEvolve(logs);cpuAttach(logs);const result=cpuAttack(logs);if(result==='over')return;if(result==='promote'){phase='promote';render();say(logs.join('\n')+'\n🔄 ベンチから次のバトルポケモンを選んでね');return}beginPlayerTurn(logs.join('\n'))}
+function runCpuTurn(prefix){if(phase==='over')return;phase='cpu';turns.cpu++;const logs=[prefix,'―― CPUの'+turns.cpu+'番目 ――'];if(!cpu.deck.length)return finish('player','CPUが山札からカードを引けない！');draw(cpu);logs.push('🤖 山札から1枚ドロー');cpuDeploy(logs);cpuEvolve(logs);cpuAttach(logs);cpuRetreat(logs);const result=cpuAttack(logs);if(result==='over')return;if(result==='promote'){phase='promote';render();say(logs.join('\n')+'\n🔄 ベンチから次のバトルポケモンを選んでね');return}beginPlayerTurn(logs.join('\n'))}
 function endTurn(){if(phase!=='player')return;if(!player.active)return say('❌ バトル場にポケモンを出してね');runCpuTurn('自分の番を終了。')}
 function cardButton(k,sub,fn,sel=false){const c=cards[k],b=document.createElement('button');b.className='card'+(sel?' selected':'');const strong=document.createElement('strong');strong.textContent=(c.type==='energy'?'⚡ ':c.type==='trainer'?'🧰 ':'🐾 ')+c.name;const small=document.createElement('span');small.className='small';small.textContent=sub;b.append(strong,small);b.onclick=fn;return b}
 function monText(m){const c=cards[m.key];return c.name+' / HP '+Math.max(0,c.hp-m.receivedDamage)+'/'+c.hp+' / ⚡'+m.energy}
