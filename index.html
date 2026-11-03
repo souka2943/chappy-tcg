@@ -1,13 +1,15 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ちゃっぴーTCG β2.6</title>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ちゃっぴーTCG β2.6.1</title>
 <style>
 *{box-sizing:border-box}body{margin:0 auto;max-width:780px;padding:14px;background:#10192c;color:#fff;font-family:system-ui,sans-serif}h1{font-size:23px}h2{font-size:17px;margin:0 0 9px}section{background:#20314c;border-radius:14px;padding:13px;margin:11px 0}button{background:#ffd063;color:#282318;border:0;border-radius:10px;padding:10px;font-weight:650;margin:3px;cursor:pointer}button:disabled{opacity:.4;cursor:default}.card{background:#365273;color:#fff;border:2px solid transparent;border-radius:10px;text-align:left;min-width:110px;padding:10px;display:inline-flex;flex-direction:column;gap:4px}.selected{border-color:#ffd063}.slot{border:1px dashed #8196b1;border-radius:10px;padding:7px;min-height:75px;display:flex;justify-content:center;align-items:center}.bench{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.hand,.actions,.counts{display:flex;gap:5px;flex-wrap:wrap}.counts{gap:13px;font-weight:650}.muted,.small{color:#bbcee5;font-size:12px}.log{white-space:pre-wrap;color:#ffe29a;min-height:40px}.enemy{background:#46374e;border-radius:10px;padding:10px;margin:5px 0}.notice{color:#ffe29a;font-weight:700}.hide{display:none!important}.coin{font-size:48px;text-align:center;margin:10px}.info{border-left:3px solid #ffd063;padding-left:9px}.trashlist{display:grid;gap:6px;margin-top:8px}.trashrow{background:#304763;color:#fff;text-align:left;width:100%;margin:0}.tabon{outline:2px solid #fff}.retreathelp{font-size:12px;color:#ffe29a}.deckrow{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #52627c;padding:7px 0}.deckrow .actions{flex-shrink:0}.deckrow button{min-width:38px}.searchrow{display:flex;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid #50627c;padding:6px 0}.searchrow button{flex-shrink:0}.searchrow .muted{font-size:12px}.searchrow.dim{opacity:.65}.deckok{color:#a8ffcf}.deckbad{color:#ffd29a}
 
 .diagbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.diagpill{padding:5px 10px;border-radius:30px;background:#2e4965;font-size:12px}.diagpill.bad{background:#963e42;color:white}.diagpill.warn{background:#866225;color:white}.diagdetails{white-space:pre-wrap;max-height:240px;overflow:auto;background:#10192c;padding:9px;border-radius:9px;font-size:12px}.diagentry{border-bottom:1px solid #53647d;padding:8px 0}.diagerror{color:#ffb2b2}.diagwarning{color:#ffdf93}.diagpass{color:#b8ffd2}
-</style></head><body>
-<h1>⚡ちゃっぴーTCG β2.6</h1><p class="muted">🧪 弱点・抵抗力の計算と相性テストモードを追加。効果は検証用の仮データ。</p><p class="muted">🃏 自分・CPUのデッキを別々に構築・保存。カードの能力はすべて仮データです。</p>
-<section id="deckEditor"><h2>🃏 デッキ構築（β2.6）</h2><p class="muted">自分とCPUのデッキを個別に編集・保存できるよ。通常カードは同名最大4枚、基本エネルギーは上限なし。仮カードのみ。</p><div class="actions"><button id="deckPlayerTab">👤 自分用</button><button id="deckCpuTab">🤖 CPU用</button></div><p id="deckTotal" class="notice"></p><div id="deckRows"></div><div class="actions"><button id="deckSave">💾 デッキを保存</button><button id="deckDefault">↩️ 初期デッキに戻す</button></div><p id="deckMessage" class="muted" aria-live="polite"></p><p class="muted">保存済みの構築は次の「新しい対戦」から反映。保存先はこのブラウザのローカルストレージ。編集しても保存するまでは対戦に反映されないよ。</p></section>
-<section id="setup"><h2>🪙 コイントス</h2><p id="coinMessage">オモテかウラを予想してね！</p><div id="coinFace" class="coin">🪙</div><div id="coinButtons" class="actions"><button id="heads">オモテを予想</button><button id="tails">ウラを予想</button></div><div id="orderButtons" class="actions hide"><button id="first">先攻を選ぶ</button><button id="second">後攻を選ぶ</button></div></section>
+.screen-nav{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.screen-nav button{flex:1;min-width:110px}.home-tile{background:#263d5a;padding:16px;border-radius:12px;margin:9px 0}.screen-hidden{display:none!important}</style></head><body>
+<h1>⚡ちゃっぴーTCG β2.6.1</h1><p class="muted">🧪 弱点・抵抗力の計算と相性テストモードを追加。効果は検証用の仮データ。</p><p class="muted">🃏 自分・CPUのデッキを別々に構築・保存。カードの能力はすべて仮データです。</p>
+<nav class="screen-nav" aria-label="画面切替"><button id="navHome">🏠 ホーム</button><button id="navDeck">🃏 デッキ編集</button><button id="navBank">🗃️ データバンク</button><button id="navBattle">⚔️ CPU対戦</button></nav>
+<main id="homeScreen"><section><h2>🏠 ホーム</h2><p>画面を選んでね。保存したデッキはCPU対戦開始時に読み込むよ。</p><div class="home-tile">🃏 デッキ編集：自分用・CPU用を保存</div><div class="home-tile">⚔️ CPU対戦：最新の保存デッキで新しい対戦を開始</div><div class="home-tile">🗃️ カードデータバンク：仮カードを一覧表示</div><p class="muted">複数デッキスロットと対戦前のデッキ選択は将来実装予定。現時点では既存の自分用・CPU用の2デッキを維持するよ。</p></section></main>
+<main id="deckScreen" class="screen-hidden"><section id="deckEditor"><h2>🃏 デッキ構築（β2.6.1）</h2><p class="muted">自分とCPUのデッキを個別に編集・保存できるよ。通常カードは同名最大4枚、基本エネルギーは上限なし。仮カードのみ。</p><div class="actions"><button id="deckPlayerTab">👤 自分用</button><button id="deckCpuTab">🤖 CPU用</button></div><p id="deckTotal" class="notice"></p><div id="deckRows"></div><div class="actions"><button id="deckSave">💾 デッキを保存</button><button id="deckDefault">↩️ 初期デッキに戻す</button></div><p id="deckMessage" class="muted" aria-live="polite"></p><p class="muted">保存済みの構築は次の「新しい対戦」から反映。保存先はこのブラウザのローカルストレージ。編集しても保存するまでは対戦に反映されないよ。</p></section>
+</main><main id="bankScreen" class="screen-hidden"><section><h2>🗃️ カードデータバンク</h2><p class="muted">現在登録済みの仮カード。ここでは閲覧のみで、デッキ枚数は変更しないよ。</p><div id="bankRows"></div></section></main><main id="battleScreen" class="screen-hidden"><section><h2>⚔️ CPU対戦</h2><p class="muted">対戦を開始すると保存済みの自分・CPUデッキを読み込み、診断基準もその時点で固定するよ。</p><button id="battleStart">🎮 保存済みデッキで新しい対戦</button><p id="battleDeckInfo" class="muted"></p></section><section id="setup"><h2>🪙 コイントス</h2><p id="coinMessage">オモテかウラを予想してね！</p><div id="coinFace" class="coin">🪙</div><div id="coinButtons" class="actions"><button id="heads">オモテを予想</button><button id="tails">ウラを予想</button></div><div id="orderButtons" class="actions hide"><button id="first">先攻を選ぶ</button><button id="second">後攻を選ぶ</button></div></section>
 <section id="prep" class="hide"><h2>🎒 対戦準備</h2><p id="prepInfo"></p><div id="prepActions" class="actions"></div><p class="muted">初期配置では手札のたねポケモンをタップしてバトル場→ベンチへ配置。配置後に「準備完了」を押してね。</p></section>
 <section><h2 id="turn">対戦準備中</h2><div class="counts"><span id="mineCount"></span><span id="cpuCount"></span></div><p class="notice" id="status"></p><p id="energyStatus"></p><p id="supportStatus" class="retreathelp"></p><p id="orderInfo" class="info"></p><div class="actions"><button id="next">番を終える・CPU行動</button><button id="reset">新しい対戦</button></div></section>
 <section><h2>🤖 CPUバトル場</h2><div id="enemy" class="enemy"></div><h2>CPUベンチ</h2><div id="enemyBench" class="bench"></div></section>
@@ -17,10 +19,10 @@
 <section id="candyPanel" class="hide"><h2>🍬 ふしぎなアメ：進化先を選択</h2><p id="candyInfo" class="muted"></p><div id="candyChoices" class="actions"></div><button id="candyCancel">キャンセル</button></section>
 <section id="searchPanel" class="hide"><h2 id="searchTitle">🔎 山札検索</h2><p id="searchInfo" class="muted"></p><div id="searchActions" class="actions"></div><div id="searchRows"></div></section>
 <section><h2>🗑️ トラッシュを確認</h2><div class="actions"><button id="trashPlayer">自分のトラッシュ</button><button id="trashCpu">CPUのトラッシュ</button></div><p id="trashCount" class="muted"></p><div id="trashList" class="trashlist"></div><p id="trashDetail" class="info muted">カードをタップすると詳細を表示するよ。</p></section>
-<section id="typeTestPanel"><h2>🧪 β2.6 相性テスト（開発者用）</h2><p class="muted">対戦中のバトルポケモンにだけ一時的なタイプ・弱点・抵抗力を適用。カード原本・保存デッキは変更しないよ。新しい対戦で解除されるよ。</p><div class="actions"><label>対象 <select id="typeTestSide"><option value="cpu">🤖 CPUバトル場</option><option value="player">👤 自分のバトル場</option></select></label></div><div class="actions"><label>タイプ <select id="typeTestType"></select></label><label>弱点 <select id="typeTestWeak"></select></label><label>抵抗力 <select id="typeTestResist"></select></label></div><div class="actions"><label>弱点倍率 <select id="typeTestMultiplier"><option value="2">×2</option><option value="0">なし</option></select></label><label>抵抗力軽減 <select id="typeTestReduction"><option value="30">−30</option><option value="20">−20</option><option value="0">なし</option></select></label></div><div class="actions"><button id="typeTestApply">🧪 対戦中に適用</button><button id="typeTestClear">↩️ 対戦中の上書きを解除</button></div><p id="typeTestInfo" class="info muted">対戦準備中</p><p class="muted">※テスト設定はCPUのワザ選択AIには反映しない。実際のダメージ・きぜつ処理には反映するよ。</p></section>
-<section id="diagnosticPanel"><h2>🩺 β2.6 対戦診断</h2><div class="diagbar"><span id="diagStatus" class="diagpill" role="status" aria-live="polite">診断準備中</span><button id="diagCheck">🔍 今すぐ診断</button><button id="diagTests">🧪 自動テスト</button><button id="diagCopy">📋 診断ログをコピー</button></div><p class="muted">異常は対戦中の操作後に確認し、ここに記録するよ。対戦状態は自動で変更しない。検出できるのは定義済みの異常のみ。</p><details><summary>診断ログ・テスト結果を表示</summary><div id="diagDetails" class="diagdetails">まだ記録はないよ。</div></details></section>
+<section id="typeTestPanel"><h2>🧪 β2.6.1 相性テスト（開発者用）</h2><p class="muted">対戦中のバトルポケモンにだけ一時的なタイプ・弱点・抵抗力を適用。カード原本・保存デッキは変更しないよ。新しい対戦で解除されるよ。</p><div class="actions"><label>対象 <select id="typeTestSide"><option value="cpu">🤖 CPUバトル場</option><option value="player">👤 自分のバトル場</option></select></label></div><div class="actions"><label>タイプ <select id="typeTestType"></select></label><label>弱点 <select id="typeTestWeak"></select></label><label>抵抗力 <select id="typeTestResist"></select></label></div><div class="actions"><label>弱点倍率 <select id="typeTestMultiplier"><option value="2">×2</option><option value="0">なし</option></select></label><label>抵抗力軽減 <select id="typeTestReduction"><option value="30">−30</option><option value="20">−20</option><option value="0">なし</option></select></label></div><div class="actions"><button id="typeTestApply">🧪 対戦中に適用</button><button id="typeTestClear">↩️ 対戦中の上書きを解除</button></div><p id="typeTestInfo" class="info muted">対戦準備中</p><p class="muted">※テスト設定はCPUのワザ選択AIには反映しない。実際のダメージ・きぜつ処理には反映するよ。</p></section>
+<section id="diagnosticPanel"><h2>🩺 β2.6.1 対戦診断</h2><div class="diagbar"><span id="diagStatus" class="diagpill" role="status" aria-live="polite">診断準備中</span><button id="diagCheck">🔍 今すぐ診断</button><button id="diagTests">🧪 自動テスト</button><button id="diagCopy">📋 診断ログをコピー</button></div><p class="muted">異常は対戦中の操作後に確認し、ここに記録するよ。対戦状態は自動で変更しない。検出できるのは定義済みの異常のみ。</p><details><summary>診断ログ・テスト結果を表示</summary><div id="diagDetails" class="diagdetails">まだ記録はないよ。</div></details></section>
 <section><h2>選択中</h2><p id="selected">なし</p><h2>対戦ログ</h2><div id="log" class="log" role="status"></div></section>
-<script>
+</main><script>
 'use strict';
 // 共通コイントス：将来のワザ・特性でも利用可能
 function flipCoin(){return Math.random()<0.5?'heads':'tails'}
@@ -30,10 +32,10 @@ const cards={
  pamo:{name:'パモ',stage:0,hp:70,retreat:1,attacks:[{name:'でんきショック（仮）',cost:1,damage:20}]},
  pawmo:{name:'パモット',stage:1,from:'パモ',hp:90,retreat:1,attacks:[{name:'スパーク（仮）',cost:2,damage:40}]},
  pawmot:{name:'パーモット',stage:2,from:'パモット',hp:150,retreat:2,attacks:[{name:'らいげき（仮）',cost:3,damage:100}]},
- pikachu:{name:'ピカチュウex',stage:0,hp:190,retreat:1,ex:true,ability:{name:'せいでんき（仮）',trigger:'after_attack_damage',effect:'counterParalysis',description:'ワザのダメージを受けた時コインを投げ、オモテなら相手をマヒにする予定（β2.6）。β2.6は特殊状態を付与。'},attacks:[{name:'でんこうせっか（仮）',cost:1,damage:30},{name:'10まんボルト（仮）',cost:3,damage:120}]},
+ pikachu:{name:'ピカチュウex',stage:0,hp:190,retreat:1,ex:true,ability:{name:'せいでんき（仮）',trigger:'after_attack_damage',effect:'counterParalysis',description:'ワザのダメージを受けた時コインを投げ、オモテなら相手をマヒにする予定（β2.6.1）。β2.6.1は特殊状態を付与。'},attacks:[{name:'でんこうせっか（仮）',cost:1,damage:30},{name:'10まんボルト（仮）',cost:3,damage:120}]},
  magnemite:{name:'コイル',stage:0,hp:60,retreat:1,attacks:[{name:'たいあたり（仮）',cost:1,damage:10}]},
  magneton:{name:'レアコイル',stage:1,from:'コイル',hp:100,retreat:2,attacks:[{name:'でんじほう（仮）',cost:2,damage:50}]},
- energy:{name:'基本雷エネルギー',type:'energy'},item:{name:'テスト用グッズ',type:'trainer',subtype:'item',effect:'draw2'},switchItem:{name:'テスト用いれかえ',type:'trainer',subtype:'item',effect:'switch'},support:{name:'テスト用サポート',type:'trainer',subtype:'support',effect:'draw3'},nestBall:{name:'ネストボール',type:'trainer',subtype:'item',effect:'searchBasicBench',description:'山札からたねポケモンを1枚選び、ベンチに出す。その後山札を切る。'},ultraBall:{name:'ハイパーボール',type:'trainer',subtype:'item',effect:'searchPokemonDiscard2',description:'手札を2枚トラッシュして使う。山札からポケモンを1枚手札に加え、その後山札を切る。'},rareCandy:{name:'テスト用ふしぎなアメ',type:'trainer',subtype:'item',effect:'rareCandy'},testNeedle:{name:'テスト用どくばり',type:'trainer',subtype:'tool',effect:'counterPoison',description:'ワザのダメージを受けた時、攻撃した相手にどくを与える予定（β2.6）。β2.6では特殊状態を付与。'}
+ energy:{name:'基本雷エネルギー',type:'energy'},item:{name:'テスト用グッズ',type:'trainer',subtype:'item',effect:'draw2'},switchItem:{name:'テスト用いれかえ',type:'trainer',subtype:'item',effect:'switch'},support:{name:'テスト用サポート',type:'trainer',subtype:'support',effect:'draw3'},nestBall:{name:'ネストボール',type:'trainer',subtype:'item',effect:'searchBasicBench',description:'山札からたねポケモンを1枚選び、ベンチに出す。その後山札を切る。'},ultraBall:{name:'ハイパーボール',type:'trainer',subtype:'item',effect:'searchPokemonDiscard2',description:'手札を2枚トラッシュして使う。山札からポケモンを1枚手札に加え、その後山札を切る。'},rareCandy:{name:'テスト用ふしぎなアメ',type:'trainer',subtype:'item',effect:'rareCandy'},testNeedle:{name:'テスト用どくばり',type:'trainer',subtype:'tool',effect:'counterPoison',description:'ワザのダメージを受けた時、攻撃した相手にどくを与える予定（β2.6.1）。β2.6.1では特殊状態を付与。'}
 };
 // 仮カードのタイプと相性。公式カードの確定データではない。
 for(const key of ['pamo','pawmo','pawmot','pikachu','magnemite','magneton'])Object.assign(cards[key],{pokemonType:'雷',weakness:null,resistance:null,weaknessMultiplier:2,resistanceReduction:30});
@@ -58,6 +60,7 @@ const recipe={pamo:4,pawmo:4,pawmot:3,pikachu:4,magnemite:4,magneton:3,energy:20
 const DECK_SAVE_KEYS={player:'chappy-tcg-deck-beta17',cpu:'chappy-tcg-cpu-deck-beta18'};
 let deckSide='player';
 const savedDecks={player:{...recipe},cpu:{...recipe}};
+let battleDeckSnapshots={player:{...recipe},cpu:{...recipe}};
 const draftDecks={player:{...recipe},cpu:{...recipe}};
 function deckTotal(r){return Object.values(r).reduce((a,b)=>a+b,0)}
 function validDeck(r){return !!r&&Object.keys(recipe).every(k=>Number.isInteger(r[k])&&r[k]>=0&&(k==='energy'||r[k]<=4))&&Object.keys(r).every(k=>k in recipe)&&deckTotal(r)===60&&Object.keys(r).some(k=>cards[k].stage===0&&r[k]>0)}
@@ -74,7 +77,7 @@ function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor
 function makeDeck(r){const a=[];for(const [k,n] of Object.entries(r))for(let i=0;i<n;i++)a.push(k);if(a.length!==60)throw Error('60枚ではありません');return shuffle(a)}
 function draw(p){if(!p.deck.length)return null;const k=p.deck.pop();p.hand.push(k);return k}
 function pokemon(k,owner){return{id:++uid,key:k,stack:[{key:k,id:uid}],entered:turns[owner],evolved:-1,energy:0,energyCards:[],damageCounters:0,tool:null,status:{poisoned:false,paralyzed:false,paralyzedOnTurn:0}}}
-// β2.6: ダメカン1個=10。保持するのは整数個数、原因はイベントに分離する。
+// β2.6.1: ダメカン1個=10。保持するのは整数個数、原因はイベントに分離する。
 // ワザのダメージと「ダメカンをのせる」は別イベント。後続の特性/どうぐで識別可能。
 let damageEvents=[];
 function damageAmount(mon){return mon.damageCounters*10}
@@ -86,7 +89,7 @@ function dealDamage(target,amount,source={}){if(!Number.isSafeInteger(amount)||a
 function moveDamageCounters(from,to,count,source={}){checkCounterCount(count);if(!from||!to||from===to||!count)return 0;const moved=Math.min(from.damageCounters,count);from.damageCounters-=moved;to.damageCounters+=moved;if(moved){recordDamage('move_from',from,moved,source);recordDamage('move_to',to,moved,source)}return moved}
 function healDamage(target,amount,source={}){if(!Number.isSafeInteger(amount)||amount<0||amount%10!==0)throw Error('回復量は10単位');if(!target)return 0;const removed=Math.min(target.damageCounters,amount/10);target.damageCounters-=removed;if(removed)recordDamage('heal',target,removed,source);return removed*10}
 
-// β2.6 特殊状態：状態はポケモン実体に保持し、進化・ベンチ移動で解除する。
+// β2.6.1 特殊状態：状態はポケモン実体に保持し、進化・ベンチ移動で解除する。
 // マヒの回復は持ち主の次の番の終わり（付与された番と同じ番では解除しない）。
 function condition(mon){if(!mon)return null;if(!mon.status)mon.status={poisoned:false,paralyzed:false,paralyzedOnTurn:0};return mon.status}
 function clearSpecialConditions(mon,logs,reason){if(!mon)return;const st=condition(mon);if(st.poisoned||st.paralyzed){st.poisoned=false;st.paralyzed=false;st.paralyzedOnTurn=0;if(logs)logs.push('✨ '+cards[mon.key].name+'の特殊状態を解除（'+reason+'）')}}
@@ -137,7 +140,7 @@ function takeHand(p,i){return p.hand.splice(i,1)[0]}
 function basic(k){return cards[k]&&cards[k].stage===0}
 function dealOpening(p){let count=0;do{if(count){p.deck=shuffle(p.deck.concat(p.hand));p.hand=[]}for(let i=0;i<7;i++)draw(p);if(p.hand.some(basic))break;count++;if(count>1000)throw Error('初手を作れません')}while(true);return count}
 function cpuDeploy(logs){while(cpu.bench.length<5){const i=cpu.hand.findIndex(basic);if(i<0)break;const k=takeHand(cpu,i),m=pokemon(k,'cpu');if(!cpu.active){cpu.active=m;logs.push('🤖 '+cards[k].name+'をバトル場へ')}else{cpu.bench.push(m);logs.push('🤖 '+cards[k].name+'をベンチへ')}}}
-function reset(){typeOverrides={player:null,cpu:null};damageEvents=[];pendingCpuAfterPromotion=false;pendingCpuCheckupAfterPromotion=false;uid=0;phase='coin';selected=null;energyUsed=false;attacked=false;supportUsed=false;retreatUsed=false;retreatPicking=false;switchHandIndex=-1;candyState=null;searchState=null;trashView='player';history=[];turns={player:0,cpu:0};mulligans={player:0,cpu:0};firstSide=null;coinWinner=null;coinResult=null;extraMax=0;extraTaken=0;player=newSide(savedDecks.player);cpu=newSide(savedDecks.cpu);$('setup').classList.remove('hide');$('prep').classList.add('hide');$('coinMessage').textContent='オモテかウラを予想してね！';$('coinFace').textContent='🪙';$('coinButtons').classList.remove('hide');$('orderButtons').classList.add('hide');render();say('🪙 コイントスの予想を選んでね。')}
+function reset(){battleDeckSnapshots={player:{...savedDecks.player},cpu:{...savedDecks.cpu}};typeOverrides={player:null,cpu:null};damageEvents=[];pendingCpuAfterPromotion=false;pendingCpuCheckupAfterPromotion=false;uid=0;phase='coin';selected=null;energyUsed=false;attacked=false;supportUsed=false;retreatUsed=false;retreatPicking=false;switchHandIndex=-1;candyState=null;searchState=null;trashView='player';history=[];turns={player:0,cpu:0};mulligans={player:0,cpu:0};firstSide=null;coinWinner=null;coinResult=null;extraMax=0;extraTaken=0;player=newSide(battleDeckSnapshots.player);cpu=newSide(battleDeckSnapshots.cpu);$('setup').classList.remove('hide');$('prep').classList.add('hide');$('coinMessage').textContent='オモテかウラを予想してね！';$('coinFace').textContent='🪙';$('coinButtons').classList.remove('hide');$('orderButtons').classList.add('hide');render();say('🪙 コイントスの予想を選んでね。')}
 function guessCoin(guess){if(phase!=='coin'||coinResult!==null)return;coinResult=flipCoin();coinWinner=guess===coinResult?'player':'cpu';const face=coinResult==='heads'?'オモテ':'ウラ';$('coinFace').textContent=coinResult==='heads'?'🌞':'🌙';$('coinButtons').classList.add('hide');if(coinWinner==='player'){$('coinMessage').textContent=face+'！予想的中！先攻・後攻を選んでね。';$('orderButtons').classList.remove('hide');say('🪙 '+face+'！自分が選択権を獲得！')}else{$('coinMessage').textContent=face+'！CPUが選択権を獲得。CPUは先攻を選択。';say('🪙 '+face+'！CPUが先攻を選択。');setOrder('cpu')}}
 function setOrder(side){if(phase!=='coin'||!coinWinner||!['player','cpu'].includes(side))return;if(coinWinner==='cpu'&&side!=='cpu')return;firstSide=side;phase='opening';$('setup').classList.add('hide');$('prep').classList.remove('hide');mulligans.player=dealOpening(player);mulligans.cpu=dealOpening(cpu);const logs=['先攻：'+(side==='player'?'自分':'CPU'),'自分のマリガン：'+mulligans.player+'回 / CPU：'+mulligans.cpu+'回'];
  // サイドは初期配置の後にセットする。初手を引き直した山札をそのまま使用。
@@ -164,8 +167,8 @@ function play(i){if(phase!=='player'&&phase!=='placement')return say('❌ 今は
  if(c.type==='energy'){const t=chosen();if(!t)return say('❌ 先にポケモンを選んでね');if(energyUsed)return say('❌ 手貼りは1ターン1枚まで');t.energyCards.push({key:takeHand(player,i),id:++uid});t.energy=t.energyCards.length;energyUsed=true;render();return say('⚡ '+cards[t.key].name+'にエネルギーを付けた')}
  if(c.stage===0){if(!player.active){player.active=pokemon(k,'player');selected='active'}else if(player.bench.length<5){player.bench.push(pokemon(k,'player'));selected=player.bench.length-1}else return say('❌ ベンチは5匹まで');takeHand(player,i);render();return say('✅ '+c.name+'を場に出した')}
  const t=chosen();if(!t)return say('❌ 進化するポケモンを選んでね');const b=cards[t.key];if(turns.player<=1||t.entered===turns.player||t.evolved===turns.player)return say('❌ この番は進化できないよ');if(c.from!==b.name||c.stage!==b.stage+1)return say('❌ 進化元が違うよ');clearSpecialConditions(t,null,'進化');t.key=k;t.evolved=turns.player;takeHand(player,i);t.stack.push({key:k,id:++uid});render();say('✅ '+b.name+' → '+c.name+'に進化！')}
-// β2.6 共通効果イベント：ワザによるダメージとダメカン配置は別イベント。
-// 状態異常の適用はβ2.6で実装するため、この版では判定・コイントス・ログのみ。
+// β2.6.1 共通効果イベント：ワザによるダメージとダメカン配置は別イベント。
+// 状態異常の適用はβ2.6.1で実装するため、この版では判定・コイントス・ログのみ。
 function emitBattleEvent(event,logs){
  if(event.type!=='after_attack_damage'||event.amount<=0||!event.defender||!event.attacker)return;
  const defending=event.defender,attacking=event.attacker;
@@ -215,7 +218,7 @@ function playTrainer(i){
  if(c.effect==='draw2')for(let n=0;n<2;n++){if(draw(player))count++}
  render();say('🧰 '+c.name+'を使用！ 山札から'+count+'枚引いて、グッズをトラッシュへ。');
 }
-// β2.6 共通山札検索。山札全体を表示し、条件に合うカードだけ選択可能。
+// β2.6.1 共通山札検索。山札全体を表示し、条件に合うカードだけ選択可能。
 // ハイパーボールのコストはカード使用前に確定し、支払った後は取り消せない。
 function searchEligible(key,kind){return kind==='nest'?cards[key]?.stage===0:cards[key]?.stage!==undefined}
 function beginSearchTrainer(i){
@@ -380,7 +383,7 @@ function cpuEvolve(logs){if(turns.cpu<=1)return;for(const t of [cpu.active,...cp
 function cpuAttach(logs){const i=cpu.hand.indexOf('energy');if(i<0){logs.push('🤖 手札にエネルギーなし');return}const targets=[cpu.active,...cpu.bench].filter(Boolean);if(!targets.length)return;const t=targets.find(m=>m===cpu.active&&cards[m.key].attacks.some(a=>a.cost>m.energy))||targets.find(m=>cards[m.key].attacks.some(a=>a.cost>m.energy))||cpu.active;t.energyCards.push({key:takeHand(cpu,i),id:++uid});t.energy=t.energyCards.length;logs.push('🤖 '+cards[t.key].name+'にエネルギーを1枚付けた（合計'+t.energy+'枚）')}
 // CPUのにげる判断：交代後に攻撃できるか、HPが危険か、交代で戦力が上がるかを評価。
 // この版ではワザのダメージ・必要エネルギーはすべて検証用の仮データ。
-// β2.6：CPUが交代グッズを使うか判断。攻撃可能なワザ、きぜつ、残りHPを評価する。
+// β2.6.1：CPUが交代グッズを使うか判断。攻撃可能なワザ、きぜつ、残りHPを評価する。
 function cpuSwitchItem(logs){
  const itemIndex=cpu.hand.indexOf('switchItem');
  if(itemIndex<0)return false;
@@ -447,7 +450,7 @@ function benchInfo(i){const m=player.bench[i];if(!m)return;$('benchDetail').text
 function monText(m,side){const c=cards[m.key],d=battleDefense(m,side||'player');return c.name+' / HP '+Math.max(0,c.hp-damageAmount(m))+'/'+c.hp+' / ⚡'+m.energy+(condition(m).poisoned?' / ☠️どく':'')+(condition(m).paralyzed?' / ⚡マヒ':'')+(m.tool?' / 🪡'+cards[m.tool.key].name:'')+(c.ability?' / ✨'+c.ability.name:'')+' / '+battleType(m,side||'player')+' / 弱:'+d.weakness+' 抵:'+d.resistance}
 function render(){$('turn').textContent='自分 '+turns.player+'番 / CPU '+turns.cpu+'番';$('mineCount').textContent='自分：山札'+player.deck.length+' 手札'+player.hand.length+' サイド'+player.prizes.length;$('cpuCount').textContent='CPU：山札'+cpu.deck.length+' 手札'+cpu.hand.length+' サイド'+cpu.prizes.length;$('status').textContent=({coin:'🪙 コイントス待ち',opening:'🎒 初手を準備中',extra:'🎒 マリガン追加ドロー',placement:'🎒 初期配置中',player:attacked?'⚔️ 攻撃済み・番を終えてね':'🟢 自分の操作中',cpu:'🤖 CPU行動中',promote:'🔄 ベンチから交代先を選択',retreat:'🏃 にげる：交代先を選択',switch:'🔄 グッズ：交代先を選択',candy:'🍬 進化先を選択',search:'🔎 山札を検索中',ultraCost:'🗑️ 手札2枚を選択中',over:'🏁 対戦終了'})[phase];$('energyStatus').textContent='⚡ 手貼り：'+(energyUsed?'使用済み':'未使用');$('supportStatus').textContent='📘 サポート：'+(supportUsed?'この番は使用済み':(phase==='player'&&firstSide==='player'&&turns.player===1?'先攻最初の番は使用不可':'未使用'));$('orderInfo').textContent=firstSide?'先攻：'+(firstSide==='player'?'自分':'CPU')+' / 後攻：'+(firstSide==='player'?'CPU':'自分'):'先攻・後攻は未決定';$('next').disabled=phase!=='player';$('enemy').textContent=cpu.active?monText(cpu.active,'cpu'):'なし';$('enemyBench').replaceChildren();cpu.bench.forEach(m=>{const d=document.createElement('div');d.className='enemy';d.textContent=monText(m,'cpu');$('enemyBench').append(d)});if(!cpu.bench.length)$('enemyBench').textContent='ベンチなし';$('active').replaceChildren();if(player.active)$('active').append(cardButton(player.active.key,monText(player.active),()=>choose('active'),selected==='active'));else $('active').textContent='空き';$('attacks').replaceChildren();if(player.active)cards[player.active.key].attacks.forEach((a,i)=>{const b=document.createElement('button');b.textContent=a.name+' ⚡'+a.cost+' / '+a.damage+'ダメージ';b.disabled=phase!=='player'||attacked||condition(player.active).paralyzed||(firstSide==='player'&&turns.player===1);b.onclick=()=>attack(i);$('attacks').append(b)});$('bench').replaceChildren();for(let i=0;i<5;i++){const d=document.createElement('div');d.className='slot';if(player.bench[i])d.append(cardButton(player.bench[i].key,monText(player.bench[i]),()=>{benchInfo(i);choose(i)},selected===i));else d.textContent='空き '+(i+1);$('bench').append(d)}if(!player.bench.length)$('benchDetail').textContent='ベンチなし';$('hand').replaceChildren();player.hand.forEach((k,i)=>$('hand').append(cardButton(k,'手札',()=>play(i))));if(Number.isInteger(selected)&&player.bench[selected])benchInfo(selected);const t=chosen();$('selected').textContent=t?monText(t):'なし';$('retreat').disabled=phase!=='player'||attacked||(player.active&&condition(player.active).paralyzed)||retreatUsed||!player.active||!player.bench.length||player.active.energyCards.length<(cards[player.active.key].retreat??0);$('retreatInfo').textContent=player.active?'にげるコスト：⚡'+(cards[player.active.key].retreat??0)+'枚 / '+(retreatUsed?'この番は使用済み':'この番は未使用')+(phase==='retreat'?' / ベンチをタップして交代':''):'';$('retreatChoices').replaceChildren();if(phase==='retreat'||phase==='switch'){const b=document.createElement('button');b.textContent='キャンセル';b.onclick=phase==='switch'?cancelSwitch:cancelRetreat;$('retreatChoices').append(b)}renderCandy();renderSearch();showTrash();showPrep();formatTypeTest()}
 
-// β2.6: 非破壊型の診断。元のゲーム状態を書き換えない。
+// β2.6.1: 非破壊型の診断。元のゲーム状態を書き換えない。
 const diagnosticRecords=[];
 let diagnosticLastSignature='',diagnosticTestResults=[];
 function diagCardKey(entry){return typeof entry==='string'?entry:entry?.key}
@@ -470,7 +473,7 @@ function inspectSide(side,name){
   if(m!==side.active&&m.status&&(m.status.poisoned||m.status.paralyzed))push('TCG-W002','警告','ベンチのポケモンに特殊状態が残っている');
  }
  if(all.length!==60)push('TCG-E008','重大','カード合計が'+all.length+'枚（期待60枚）');
- const expected=savedDecks[name],actual={};for(const k of all)actual[k]=(actual[k]||0)+1;
+ const expected=battleDeckSnapshots[name],actual={};for(const k of all)actual[k]=(actual[k]||0)+1;
  if(expected)for(const k of Object.keys(expected))if((actual[k]||0)!==expected[k])push('TCG-E009','重大',cards[k].name+' の枚数が不一致：'+(actual[k]||0)+' / '+expected[k]);
  return issues;
 }
@@ -491,6 +494,7 @@ function runRegressionTests(){
  test('たねポケモンの検索条件',()=>searchEligible('pamo','nest')&&!searchEligible('pawmot','nest'));
  test('ハイパーボールの検索条件',()=>searchEligible('pawmot','ultra')&&!searchEligible('energy','ultra'));
  test('デッキ合計60枚',()=>deckTotal(recipe)===60&&validDeck(recipe));
+ test('保存後も対戦開始時の枚数基準を固定',()=>{const snapshot={...recipe};const edited={...recipe};edited.pawmo--;edited.rareCandy++;return validDeck(edited)&&snapshot.pawmo===recipe.pawmo&&snapshot.rareCandy===recipe.rareCandy&&edited.pawmo!==snapshot.pawmo});
  test('進化条件の一致',()=>cards.pawmo.from===cards.pamo.name&&cards.pawmot.from===cards.pawmo.name);
  test('どく・マヒの状態を個別に解除',()=>{const m=mock('pamo');m.status={poisoned:true,paralyzed:true,paralyzedOnTurn:1};m.status.paralyzed=false;return m.status.poisoned&&!m.status.paralyzed});
  test('マヒ時の行動制限データ',()=>{const m=mock('pamo');m.status={poisoned:false,paralyzed:true,paralyzedOnTurn:1};return condition(m).paralyzed});
@@ -504,10 +508,24 @@ function runRegressionTests(){
  typeOverrides=oldOverrides;
  damageEvents=savedDamageEvents;diagnosticTestResults=results;diagRender();return results;
 }
-function diagnosticText(){return 'ちゃっぴーTCG β2.6 診断ログ\n'+$('diagStatus').textContent+'\n'+$('diagDetails').textContent}
+function diagnosticText(){return 'ちゃっぴーTCG β2.6.1 診断ログ\n'+$('diagStatus').textContent+'\n'+$('diagDetails').textContent}
 $('diagCheck').onclick=()=>{runDiagnostics('手動診断');$('diagnosticPanel').querySelector('details').open=true};
 $('diagTests').onclick=()=>{runRegressionTests();$('diagnosticPanel').querySelector('details').open=true};
 $('diagCopy').onclick=async()=>{const txt=diagnosticText();try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(txt);$('diagStatus').textContent+=' / コピー済み'}else{const a=document.createElement('textarea');a.value=txt;document.body.append(a);a.select();document.execCommand('copy');a.remove();$('diagStatus').textContent+=' / コピーを試行'}}catch(e){$('diagStatus').textContent+=' / コピー不可：詳細を長押ししてコピーしてね'}};
 
 $('candyCancel').onclick=cancelCandy;$('heads').onclick=()=>guessCoin('heads');$('tails').onclick=()=>guessCoin('tails');$('first').onclick=()=>setOrder('player');$('second').onclick=()=>setOrder('cpu');$('next').onclick=endTurn;$('retreat').onclick=startRetreat;$('trashPlayer').onclick=()=>{trashView='player';$('trashDetail').textContent='カードをタップすると詳細を表示するよ。';showTrash()};$('trashCpu').onclick=()=>{trashView='cpu';$('trashDetail').textContent='カードをタップすると詳細を表示するよ。';showTrash()};$('reset').onclick=reset;$('deckPlayerTab').onclick=()=>selectDeckSide('player');$('deckCpuTab').onclick=()=>selectDeckSide('cpu');$('deckSave').onclick=saveDeck;$('deckDefault').onclick=defaultDeck;loadDeck();renderDeckEditor();initTypeTest();reset();
+// β2.6.1 画面分離。画面切替自体はデッキや対戦状態を書き換えない。
+let currentScreen='home';
+function showScreen(name){
+ currentScreen=name;
+ for(const id of ['home','deck','bank','battle'])$(id+'Screen').classList.toggle('screen-hidden',id!==name);
+ for(const [id,screen] of [['navHome','home'],['navDeck','deck'],['navBank','bank'],['navBattle','battle']])$(id).classList.toggle('tabon',screen===name);
+ if(name==='bank')renderBank();
+ if(name==='battle')$('battleDeckInfo').textContent='保存済み：自分 '+deckTotal(savedDecks.player)+'枚 / CPU '+deckTotal(savedDecks.cpu)+'枚。変更を反映するには「新しい対戦」を押してね。';
+ window.scrollTo(0,0);
+}
+function renderBank(){const root=$('bankRows');root.replaceChildren();for(const [key,c] of Object.entries(cards)){const d=document.createElement('div');d.className='deckrow';const text=document.createElement('span');text.textContent=c.name+' / '+(c.type==='energy'?'エネルギー':c.type==='trainer'?'トレーナーズ':'ポケモン')+' / ID: '+key;d.append(text);root.append(d)}}
+function startFromHome(){if(!validDeck(savedDecks.player)||!validDeck(savedDecks.cpu)){alert('保存済みのデッキが60枚か確認してね');return}reset();showScreen('battle')}
+$('navHome').onclick=()=>showScreen('home');$('navDeck').onclick=()=>showScreen('deck');$('navBank').onclick=()=>showScreen('bank');$('navBattle').onclick=startFromHome;$('battleStart').onclick=startFromHome;
+showScreen('home');
 </script></body></html>
