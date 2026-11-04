@@ -32,7 +32,7 @@
 <nav aria-label="画面切替" class="screen-nav"><button id="navHome">🏠 ホーム</button><button id="navDeck">🃏 デッキ編集</button><button id="navBank">🗃️ データバンク</button><button id="navBattle">⚔️ CPU対戦</button></nav>
 <main id="homeScreen"><section><h2>🏠 ホーム</h2><p>画面を選んでね。保存したデッキはCPU対戦開始時に読み込むよ。</p><div class="home-tile">🃏 デッキ編集：自分用・CPU用を保存</div><div class="home-tile">⚔️ CPU対戦：最新の保存デッキで新しい対戦を開始</div><div class="home-tile">🗃️ カードデータバンク：検索・詳細・収録情報を確認</div><p class="muted">複数デッキスロットと対戦前のデッキ選択は将来実装予定。現時点では既存の自分用・CPU用の2デッキを維持するよ。</p></section></main>
 <main class="screen-hidden" id="deckScreen"><section id="deckEditor"><h2>🃏 デッキ構築（β2.7）</h2><p class="muted">自分とCPUのデッキを個別に編集・保存できるよ。通常カードは同名最大4枚、基本エネルギーは上限なし。仮カードのみ。</p><div class="actions"><button id="deckPlayerTab">👤 自分用</button><button id="deckCpuTab">🤖 CPU用</button></div><p class="notice" id="deckTotal"></p><div id="deckRows"></div><div class="actions"><button id="deckSave">💾 デッキを保存</button><button id="deckDefault">↩️ 初期デッキに戻す</button></div><p aria-live="polite" class="muted" id="deckMessage"></p><p class="muted">保存済みの構築は次の「新しい対戦」から反映。保存先はこのブラウザのローカルストレージ。編集しても保存するまでは対戦に反映されないよ。</p></section>
-</main><main class="screen-hidden" id="bankScreen"><section><h2>🗃️ カードデータバンク</h2><p class="muted">現在登録済みの仮カード。収録IDは開発用の仮番号で、公式カード番号ではないよ。レギュレーションの使用可否は公式情報確認まで未判定。</p><div class="bank-controls"><input aria-label="カード検索" autocomplete="on" id="bankQuery" lang="ja" placeholder="カード名・ID（ひらがなOK）で検索" type="text"/><div class="bank-input-actions"><button id="bankPaste" type="button">📋 コピーした文字を貼り付け</button><button id="bankClear" type="button">✖ 検索を消去</button></div><p class="muted">日本語キーボードが出ない場合は、メモなどでカード名をコピーして検索欄に長押しで貼り付けてね。貼り付けボタンも使えるよ。</p><select aria-label="種類" id="bankKind"><option value="all">すべて</option><option value="pokemon">ポケモン</option><option value="trainer">トレーナーズ</option><option value="energy">エネルギー</option></select><select aria-label="確認状況" id="bankVerification"><option value="all">確認状況：すべて</option><option value="provisional">仮データ</option><option value="verified">公式確認済み</option></select></div><p class="muted" id="bankCount"></p><div id="bankRows"></div><div aria-live="polite" class="bank-detail" id="bankDetail">カードを選ぶと詳細を表示するよ。</div></section><section id="realDeckPanel"><h2>🌙 β2.8 実カード登録：メガピクシーex</h2><p class="muted">デッキコード：F5kbvF-2gmLzS-dVfbVV。スクリーンショットから60枚の構成を転記。効果確認済みカードのみ公式リンクを掲載。現時点では閲覧専用で、CPU対戦は従来の仮デッキのままだよ。</p><p class="muted" id="realDeckCount"></p><div id="realDeckRows"></div></section></main><main class="screen-hidden" id="battleScreen"><section id="realOpeningPanel"><h2>🌙 実カード対戦ボード（β2.9.18）</h2><p class="muted">カードをタップして操作する実カード盤面。CPUは初期配置・ドロー・ベンチ展開・基本超エネルギー配置・進化に対応。β2.9.18でタイプ別エネルギー判定エンジンを追加。攻撃実行・特性処理は未実装。旧仮カード対戦は下の折りたたみから利用できるよ。</p><div class="real-zone real-setup"><h3>🎮 対戦準備</h3><button id="realOpeningStart" type="button">🃏 実カードで初手を配る</button><p class="notice" id="realOpeningStatus">未開始</p><div class="actions"><button id="realPlacementUndo" type="button">↩️ 最後の配置を戻す</button><button id="realPlacementFinish" type="button">✅ 配置完了</button></div></div><div class="real-board"><div class="board-label">🤖 CPU / メガゴルーグex</div><div class="real-zone cpu-zone"><strong>🪑 CPUのベンチ（最大5匹）</strong><div class="hand" id="cpuRealBench"></div></div><div class="real-zone cpu-zone"><strong>🤖 CPUのバトル場</strong><div class="hand" id="cpuRealActive"></div></div><div class="real-zone cpu-zone"><strong>📋 CPUの公開情報</strong><p class="muted">手札・サイドの中身は非公開。伝説の溶岩洞の効果は未実装。</p><p class="notice" id="cpuRealSummary">未開始</p></div><div class="board-label">⚔️ 対戦フィールド</div><div class="real-zone"><strong>🌙 自分のバトル場</strong><div class="hand" id="realPlacementActive"></div></div><div class="real-zone"><strong>🪑 自分のベンチ（最大5匹）</strong><div class="hand" id="realPlacementBench"></div></div><div class="board-label">🃏 自分の手札</div><div class="real-zone"><div class="hand" id="realOpeningHand"></div></div></div><p class="muted" id="realOpeningCounts"></p><div class="real-zone turn-controls"><strong>⏳ 番進行・操作</strong><p class="muted">先攻・後攻を選んでから開始。CPUは登録デッキから自動ドローするよ。CPUのワザ・トレーナーズ使用は未実装。先攻プレイヤーの最初の番はドローしないよ。</p><div class="actions"><button id="realFirst" type="button">👤 自分が先攻</button><button id="realSecond" type="button">👤 自分が後攻</button></div><p class="notice" id="realTurnStatus">初期配置を完了してね。</p><div class="actions"><button id="realTurnAdvance" type="button">➡️ 次の番へ</button></div><p class="notice" id="realEnergyStatus">基本超エネルギーは自分の番に1枚だけ手張りできるよ。</p><button id="realEnergyCancel" type="button">✖ エネルギー選択を解除</button><p class="notice" id="realEvolutionStatus">進化は自分の2番目以降の番から可能だよ。</p><button id="realEvolutionCancel" type="button">✖ 進化選択を解除</button><p class="notice" id="realRetreatStatus">にげる：自分の番に1回。メガピクシーexのみ対応。</p><div class="actions"><button id="realRetreatStart" type="button">🏃 にげる（交代先を選ぶ）</button><button id="realRetreatCancel" type="button">✖ にげるを取り消す</button></div><!-- 旧サポート操作UIは廃止。既存のイベント接続と回帰テストのため、非表示の互換要素のみ保持。操作は手札タップ→確認ダイアログへ統一。 --><div hidden aria-hidden="true"><p id="realSupportStatus"></p><button id="realSupportUse" type="button" tabindex="-1">使用</button><button id="realSupportCancel" type="button" tabindex="-1">解除</button></div><p class="log" id="realTurnLog"></p></div><div class="real-zone" id="realAttackPrep"><strong>⚔️ ワザ情報・攻撃準備（β2.9.18）</strong><p class="muted">ワザに必要なタイプ・無色コストと付いているエネルギーを比較する準備ができたよ。公式画像で未確認のワザコストは未登録として安全に攻撃を禁止するよ。</p><div id="realAttackPrepRows" class="bank-detail">対戦準備中</div></div><details class="real-advanced"><summary>🧪 開発者用：山札・実カード診断（タップで開く）</summary><details><summary>📋 山札の残りカード一覧</summary><div class="bank-detail" id="realOpeningDeck"></div></details><div class="home-tile"><strong>🧪 β2.9.8 実カード専用診断</strong><p class="muted">自分とCPUの60枚整合性、サイド条件、サポート処理を検証。既存の35項目とは別のテストだよ。テストは模擬状態を使用し、現在の対戦を変更しないよ。</p><div class="actions"><button id="realDiagnostics" type="button">🔍 実カード状態を診断</button><button id="realRegression" type="button">🧪 実カード自動テスト</button></div><pre class="log" id="realDiagnosticResult" style="white-space:pre-wrap">未実行</pre></div></details></section>
+</main><main class="screen-hidden" id="bankScreen"><section><h2>🗃️ カードデータバンク</h2><p class="muted">現在登録済みの仮カード。収録IDは開発用の仮番号で、公式カード番号ではないよ。レギュレーションの使用可否は公式情報確認まで未判定。</p><div class="bank-controls"><input aria-label="カード検索" autocomplete="on" id="bankQuery" lang="ja" placeholder="カード名・ID（ひらがなOK）で検索" type="text"/><div class="bank-input-actions"><button id="bankPaste" type="button">📋 コピーした文字を貼り付け</button><button id="bankClear" type="button">✖ 検索を消去</button></div><p class="muted">日本語キーボードが出ない場合は、メモなどでカード名をコピーして検索欄に長押しで貼り付けてね。貼り付けボタンも使えるよ。</p><select aria-label="種類" id="bankKind"><option value="all">すべて</option><option value="pokemon">ポケモン</option><option value="trainer">トレーナーズ</option><option value="energy">エネルギー</option></select><select aria-label="確認状況" id="bankVerification"><option value="all">確認状況：すべて</option><option value="provisional">仮データ</option><option value="verified">公式確認済み</option></select></div><p class="muted" id="bankCount"></p><div id="bankRows"></div><div aria-live="polite" class="bank-detail" id="bankDetail">カードを選ぶと詳細を表示するよ。</div></section><section id="realDeckPanel"><h2>🌙 β2.8 実カード登録：メガピクシーex</h2><p class="muted">デッキコード：F5kbvF-2gmLzS-dVfbVV。スクリーンショットから60枚の構成を転記。効果確認済みカードのみ公式リンクを掲載。現時点では閲覧専用で、CPU対戦は従来の仮デッキのままだよ。</p><p class="muted" id="realDeckCount"></p><div id="realDeckRows"></div></section></main><main class="screen-hidden" id="battleScreen"><section id="realOpeningPanel"><h2>🌙 実カード対戦ボード（β2.9.19）</h2><p class="muted">カードをタップして操作する実カード盤面。CPUは初期配置・ドロー・ベンチ展開・基本超エネルギー配置・進化に対応。β2.9.19で採用ポケモンの基本データ・にげるコスト・ワザ情報を登録。攻撃実行・特性処理は未実装。旧仮カード対戦は下の折りたたみから利用できるよ。</p><div class="real-zone real-setup"><h3>🎮 対戦準備</h3><button id="realOpeningStart" type="button">🃏 実カードで初手を配る</button><p class="notice" id="realOpeningStatus">未開始</p><div class="actions"><button id="realPlacementUndo" type="button">↩️ 最後の配置を戻す</button><button id="realPlacementFinish" type="button">✅ 配置完了</button></div></div><div class="real-board"><div class="board-label">🤖 CPU / メガゴルーグex</div><div class="real-zone cpu-zone"><strong>🪑 CPUのベンチ（最大5匹）</strong><div class="hand" id="cpuRealBench"></div></div><div class="real-zone cpu-zone"><strong>🤖 CPUのバトル場</strong><div class="hand" id="cpuRealActive"></div></div><div class="real-zone cpu-zone"><strong>📋 CPUの公開情報</strong><p class="muted">手札・サイドの中身は非公開。伝説の溶岩洞の効果は未実装。</p><p class="notice" id="cpuRealSummary">未開始</p></div><div class="board-label">⚔️ 対戦フィールド</div><div class="real-zone"><strong>🌙 自分のバトル場</strong><div class="hand" id="realPlacementActive"></div></div><div class="real-zone"><strong>🪑 自分のベンチ（最大5匹）</strong><div class="hand" id="realPlacementBench"></div></div><div class="board-label">🃏 自分の手札</div><div class="real-zone"><div class="hand" id="realOpeningHand"></div></div></div><p class="muted" id="realOpeningCounts"></p><div class="real-zone turn-controls"><strong>⏳ 番進行・操作</strong><p class="muted">先攻・後攻を選んでから開始。CPUは登録デッキから自動ドローするよ。CPUのワザ・トレーナーズ使用は未実装。先攻プレイヤーの最初の番はドローしないよ。</p><div class="actions"><button id="realFirst" type="button">👤 自分が先攻</button><button id="realSecond" type="button">👤 自分が後攻</button></div><p class="notice" id="realTurnStatus">初期配置を完了してね。</p><div class="actions"><button id="realTurnAdvance" type="button">➡️ 次の番へ</button></div><p class="notice" id="realEnergyStatus">基本超エネルギーは自分の番に1枚だけ手張りできるよ。</p><button id="realEnergyCancel" type="button">✖ エネルギー選択を解除</button><p class="notice" id="realEvolutionStatus">進化は自分の2番目以降の番から可能だよ。</p><button id="realEvolutionCancel" type="button">✖ 進化選択を解除</button><p class="notice" id="realRetreatStatus">にげる：自分の番に1回。採用ポケモンの基本コストを登録済み。</p><div class="actions"><button id="realRetreatStart" type="button">🏃 にげる（交代先を選ぶ）</button><button id="realRetreatCancel" type="button">✖ にげるを取り消す</button></div><!-- 旧サポート操作UIは廃止。既存のイベント接続と回帰テストのため、非表示の互換要素のみ保持。操作は手札タップ→確認ダイアログへ統一。 --><div hidden aria-hidden="true"><p id="realSupportStatus"></p><button id="realSupportUse" type="button" tabindex="-1">使用</button><button id="realSupportCancel" type="button" tabindex="-1">解除</button></div><p class="log" id="realTurnLog"></p></div><div class="real-zone" id="realAttackPrep"><strong>⚔️ ワザ情報・攻撃準備（β2.9.19）</strong><p class="muted">ワザに必要なタイプ・無色コストと付いているエネルギーを比較する準備ができたよ。採用ポケモンのワザコストは照合済み。ワザ効果と攻撃実行はまだ未実装だよ。</p><div id="realAttackPrepRows" class="bank-detail">対戦準備中</div></div><div class="real-zone" id="realCardAuditPanel"><strong>📚 β2.9.19 カード基本データ監査</strong><p class="muted">両デッキ採用ポケモンのHP・進化・にげる・ワザを収録番号ごとに確認。ワザの効果処理は未実装。</p><div id="realCardAuditRows" class="bank-detail">読み込み中</div></div><details class="real-advanced"><summary>🧪 開発者用：山札・実カード診断（タップで開く）</summary><details><summary>📋 山札の残りカード一覧</summary><div class="bank-detail" id="realOpeningDeck"></div></details><div class="home-tile"><strong>🧪 β2.9.8 実カード専用診断</strong><p class="muted">自分とCPUの60枚整合性、サイド条件、サポート処理を検証。既存の35項目とは別のテストだよ。テストは模擬状態を使用し、現在の対戦を変更しないよ。</p><div class="actions"><button id="realDiagnostics" type="button">🔍 実カード状態を診断</button><button id="realRegression" type="button">🧪 実カード自動テスト</button></div><pre class="log" id="realDiagnosticResult" style="white-space:pre-wrap">未実行</pre></div></details></section>
 
 
 
@@ -640,16 +640,37 @@ function renderRealDeck(){
 renderRealDeck();
 // β2.9: 実カードの初手配布検証。既存の仮カード対戦状態は一切変更しない。
 
-// β2.9.18: 公式カードページで確認したワザの定義。必要エネルギーの色と個数は
-// 公式テキスト抽出では取得できなかったため null とし、推測して攻撃を許可しない。
-// 「ワザによるダメージ」と「自分へのダメージ」は別フィールドで保持する。
+// β2.9.19: 採用ポケモン13種類の基本情報・ワザ・コスト・にげるを照合。
+// 公式のテキストに表示されないエネルギーアイコンはLimitless収録番号一致データと照合。
+// ワザの「使用可能」と「効果実装済み」は別。攻撃実行は引き続き無効。
 const realAttackRegistry=new Map([
- ['メガピクシーex',{set:'M3',number:'030/080',hp:320,stage:1,from:'ピッピ',attacks:[{name:'シューティングムーン',baseDamage:120,energyCost:null,bonus:{kind:'discardHandEnergy',max:4,perCard:40}}],prizes:3,source:'https://www.pokemon-card.com/card-search/details.php/card/49663'}],
- ['フレフワン',{set:'M3',number:'035/080',hp:120,stage:1,from:'シュシュプ',attacks:[{name:'ドレインキッス',baseDamage:50,energyCost:null,healSelf:30}],prizes:1,source:'https://www.pokemon-card.com/card-search/details.php/card/49668'}],
- ['メガゴルーグex',{set:'M6',number:'033/076',hp:350,stage:1,from:'ゴビット',attacks:[{name:'ゴライアスパンチ',baseDamage:300,energyCost:null,selfDamage:30}],ability:{name:'きどうせいげん',requiresHandAtLeast:10},prizes:3,source:'https://www.pokemon-card.com/card-search/details.php/card/50534'}],
- ['ゴビット',{set:'M6',number:'032/076',hp:90,stage:0,attacks:[{name:'なぐる',baseDamage:50,energyCost:null}],prizes:1,source:'https://www.pokemon-card.com/card-search/details.php/card/50370'}]
+ ["ピッピ",{"set":"M3","number":"029/080","hp":70,"stage":0,"retreat":1,"from":null,"attacks":[{"name":"このゆびとまれ","baseDamage":null,"energyCost":["psychic"],"effectKind":"switchOpponent"},{"name":"はねまわる","baseDamage":30,"energyCost":["psychic","psychic"]}],"prizes":1,"source":"https://limitlesstcg.com/cards/jp/M3/29","verification":"crosschecked"}],
+ ["メガピクシーex",{"set":"M3","number":"030/080","hp":320,"stage":1,"retreat":1,"from":"ピッピ","attacks":[{"name":"シューティングムーン","baseDamage":120,"energyCost":["psychic","psychic"],"effectKind":"discardHandEnergy","bonus":{"kind":"discardHandEnergy","max":4,"perCard":40}}],"prizes":3,"source":"https://limitlesstcg.com/cards/jp/M3/30","verification":"crosschecked","ability":{"name":"ひかりのつばさ"}}],
+ ["ピクシー",{"set":"MC","number":"286/742","hp":120,"stage":1,"retreat":2,"from":"ピッピ","attacks":[{"name":"ゆびをふる","baseDamage":null,"energyCost":["colorless","colorless"],"effectKind":"copyOpponentAttack"},{"name":"マジカルショット","baseDamage":100,"energyCost":["psychic","colorless","colorless"]}],"prizes":1,"source":"https://limitlesstcg.com/cards/jp/MC/286","verification":"crosschecked"}],
+ ["リーリエのピッピex",{"set":"MC","number":"287/742","hp":190,"stage":0,"retreat":1,"from":null,"attacks":[{"name":"フルムーンロンド","baseDamage":20,"energyCost":["psychic","colorless"],"effectKind":"benchCountBonus"}],"prizes":2,"source":"https://limitlesstcg.com/cards/jp/MC/287","verification":"crosschecked","ability":{"name":"フェアリーゾーン"}}],
+ ["シュシュプ",{"set":"M3","number":"034/080","hp":70,"stage":0,"retreat":1,"from":null,"attacks":[{"name":"あまいかおり","baseDamage":null,"energyCost":["colorless"],"effectKind":"healAlly"},{"name":"ぶつかる","baseDamage":10,"energyCost":["psychic"]}],"prizes":1,"source":"https://limitlesstcg.com/cards/jp/M3/34","verification":"crosschecked"}],
+ ["フレフワン",{"set":"M3","number":"035/080","hp":120,"stage":1,"retreat":1,"from":"シュシュプ","attacks":[{"name":"ドレインキッス","baseDamage":50,"energyCost":["psychic","colorless"],"effectKind":"healSelf","healSelf":30}],"prizes":1,"source":"https://limitlesstcg.com/cards/jp/M3/35","verification":"crosschecked","ability":{"name":"かおりあつめ"}}],
+ ["キチキギスex",{"set":"MC","number":"489/742","hp":210,"stage":0,"retreat":1,"from":null,"attacks":[{"name":"クルーエルアロー","baseDamage":100,"energyCost":["colorless","colorless","colorless"],"effectKind":"targetAnyOpponent"}],"prizes":2,"source":"https://limitlesstcg.com/cards/jp/MC/489","verification":"crosschecked","ability":{"name":"さかてにとる"}}],
+ ["ラティアスex",{"set":"MC","number":"312/742","hp":210,"stage":0,"retreat":2,"from":null,"attacks":[{"name":"むげんのやいば","baseDamage":200,"energyCost":["psychic","psychic","colorless"],"effectKind":"noAttackNextTurn"}],"prizes":2,"source":"https://limitlesstcg.com/cards/jp/MC/312","verification":"crosschecked","ability":{"name":"スカイライン"}}],
+ ["スボミー",{"set":"SV8a","number":"001/187","hp":30,"stage":0,"retreat":0,"from":null,"attacks":[{"name":"むずむずかふん","baseDamage":10,"energyCost":[],"effectKind":"blockOpponentGoods"}],"prizes":1,"source":"https://limitlesstcg.com/cards/jp/SV8a/1","verification":"crosschecked"}],
+ ["ゴビット",{"set":"M6","number":"032/076","hp":90,"stage":0,"retreat":3,"from":null,"attacks":[{"name":"なぐる","baseDamage":50,"energyCost":["psychic","psychic"]}],"prizes":1,"source":"https://limitlesstcg.com/cards/jp/M6/32","verification":"crosschecked"}],
+ ["メガゴルーグex",{"set":"M6","number":"033/076","hp":350,"stage":1,"retreat":3,"from":"ゴビット","attacks":[{"name":"ゴライアスパンチ","baseDamage":300,"energyCost":["psychic","psychic"],"effectKind":"selfDamage","selfDamage":30}],"prizes":3,"source":"https://limitlesstcg.com/cards/jp/M6/33","verification":"crosschecked","ability":{"name":"きどうせいげん","requiresHandAtLeast":10}}],
+ ["ニャースex",{"set":"M3","number":"061/080","hp":170,"stage":0,"retreat":1,"from":null,"attacks":[{"name":"しっぽをまく","baseDamage":60,"energyCost":["colorless","colorless","colorless"],"effectKind":"returnSelfToHand"}],"prizes":2,"source":"https://limitlesstcg.com/cards/jp/M3/61","verification":"crosschecked","ability":{"name":"おくのてキャッチ"}}],
+ ["メガガルーラex",{"set":"M1S","number":"051/063","hp":300,"stage":0,"retreat":3,"from":null,"attacks":[{"name":"マシンガンコンボ","baseDamage":200,"energyCost":["colorless","colorless","colorless"],"effectKind":"coinUntilTails"}],"prizes":3,"source":"https://limitlesstcg.com/cards/jp/M1S/51","verification":"crosschecked","ability":{"name":"おつかいダッシュ"}}],
 ]);
-// β2.9.18: タイプ別エネルギーの充足判定。色指定を先に消費し、残りを無色枠に使う。
+const realPrintingOverrides=new Map([
+ ['M2a|075/193|ラティアスex',{...realAttackRegistry.get('ラティアスex'),set:'M2a',number:'075/193',source:'https://limitlesstcg.com/cards/jp/M2a/75'}]
+]);
+function realCardDefinition(card){
+ if(!card||card.category!=='pokemon')return null;
+ const d=realPrintingOverrides.get([card.set,card.number,card.name].join('|'))||realAttackRegistry.get(card.name);
+ return d&&d.set===card.set&&d.number===card.number?d:null;
+}
+function realCardAudit(){
+ const all=[...realDeckEntries,...cpuRealDeckEntries].filter(x=>x.category==='pokemon');
+ return all.map(x=>({card:x,definition:realCardDefinition(x)}));
+}
+// β2.9.19: タイプ別エネルギーの充足判定。色指定を先に消費し、残りを無色枠に使う。
 // cost: ['psychic','psychic','colorless'] など。カードに書かれたアイコンを確認するまでは null。
 const REAL_ENERGY_TYPES=new Set(['grass','fire','water','lightning','psychic','fighting','darkness','metal','fairy','dragon','colorless']);
 const REAL_ENERGY_LABELS={grass:'草',fire:'炎',water:'水',lightning:'雷',psychic:'超',fighting:'闘',darkness:'悪',metal:'鋼',fairy:'妖',dragon:'竜',colorless:'無色'};
@@ -673,7 +694,7 @@ function realCheckEnergyCost(cost,attached){
  return {ready:missing.length===0,verified:true,missing,reason:missing.length?'必要エネルギー不足：'+missing.map(t=>REAL_ENERGY_LABELS[t]).join('・'):'必要エネルギーを満たしている'};
 }
 function realAttackReadiness(card,attached,handCount){
- const definition=card&&realAttackRegistry.get(card.name);
+ const definition=realCardDefinition(card);
  if(!definition)return {known:false,ready:false,reason:'ワザデータ未登録'};
  const attack=definition.attacks[0];
  const check=realCheckEnergyCost(attack.energyCost,attached);
@@ -681,17 +702,32 @@ function realAttackReadiness(card,attached,handCount){
  // 特性はワザのエネルギー充足とは別の判定。現段階では攻撃を実行しない。
  return {known:true,ready:false,costReady:check.ready,reason:check.reason+(check.ready?'（攻撃実行は次バージョン以降）':'')};
 }
+function renderRealCardAudit(){
+ const root=document.getElementById('realCardAuditRows');if(!root)return;
+ const rows=realCardAudit(),unique=new Map();
+ for(const r of rows)unique.set([r.card.set,r.card.number,r.card.name].join('|'),r);
+ root.replaceChildren();
+ const summary=document.createElement('p');summary.className='notice';summary.textContent='収録別 '+[...unique.values()].filter(r=>r.definition).length+'/'+unique.size+' 登録済み（未登録は⚠️）';root.append(summary);
+ for(const {card,definition:d} of unique.values()){
+  const details=document.createElement('details');details.style.cssText='padding:7px 0;border-bottom:1px solid #60718b';
+  const heading=document.createElement('summary');heading.textContent=(d?'✅ ':'⚠️ ')+card.name+' ['+card.set+' '+card.number+']'+(d?' / HP'+d.hp+' / にげる'+d.retreat:' / 未登録');details.append(heading);
+  const p=document.createElement('p');p.className='muted';
+  p.textContent=d?'進化：'+(d.stage===0?'たね':'1進化 ← '+d.from)+' / ワザ：'+d.attacks.map(a=>a.name+' ('+a.energyCost.map(t=>REAL_ENERGY_LABELS[t]).join('・')+' / '+(a.baseDamage===null?'効果':a.baseDamage)+')').join('、')+(d.ability?' / 特性：'+d.ability.name:''):'収録番号に対応するデータなし';details.append(p);
+  if(d){const link=document.createElement('a');link.href=d.source;link.target='_blank';link.rel='noopener noreferrer';link.textContent='カード照合元を開く';link.style.color='#ffe29a';details.append(link)}
+  root.append(details);
+ }
+}
 function renderRealAttackPrep(){
  const root=document.getElementById('realAttackPrepRows');if(!root)return;
  root.replaceChildren();const s=realOpeningState;
  const targets=[{side:'自分',card:s?.active,energy:s?.activeEnergy||[],hand:s?.hand.length||0},{side:'CPU',card:s?.cpuReal?.active,energy:s?.cpuReal?.activeEnergy||[],hand:s?.cpuReal?.hand.length||0}];
  for(const t of targets){const d=document.createElement('div');d.style.cssText='padding:9px 0;border-bottom:1px solid #60718b';
   if(!t.card){d.textContent=t.side+'：バトル場未配置';root.append(d);continue;}
-  const def=realAttackRegistry.get(t.card.name),state=realAttackReadiness(t.card,t.energy,t.hand);
+  const def=realCardDefinition(t.card),state=realAttackReadiness(t.card,t.energy,t.hand);
   const h=document.createElement('strong');h.textContent=t.side+'：'+t.card.name+'（エネルギー '+t.energy.length+'枚）';d.append(h);
   const line=document.createElement('p');line.style.whiteSpace='pre-line';
   line.textContent=def?def.attacks.map(a=>a.name+'：'+a.baseDamage+'ダメージ'+(a.selfDamage?' / 自分にも'+a.selfDamage+'ダメージ':'')+(a.healSelf?' / 自分を'+a.healSelf+'回復':'')+(a.bonus?' / 手札エネルギートラッシュで追加ダメージ':'')).join('\n')+'\n⚠️ '+state.reason:'⚠️ '+state.reason;
-  d.append(line);if(def){const a=document.createElement('a');a.href=def.source;a.target='_blank';a.rel='noopener noreferrer';a.textContent='公式カード情報';d.append(a)}root.append(d);
+  d.append(line);if(def){const a=document.createElement('a');a.href=def.source;a.target='_blank';a.rel='noopener noreferrer';a.textContent='カード照合元';d.append(a)}root.append(d);
  }
 }
 // β2.9.8: 公式デッキ画像から転記したCPU用60枚。効果は未実装。
@@ -886,7 +922,7 @@ document.getElementById('realEnergyCancel').onclick=()=>{if(realOpeningState){re
 
 // β2.9.6: にげる。収録番号まで確認できたカードだけを許可する。
 // 公式カード検索はコスト記号がテキスト化されないため、M3 030/080の1個を別カードDBと照合。
-const realRetreatCosts=new Map([['M3|030/080|メガピクシーex',1]]);
+const realRetreatCosts=new Map(realCardAudit().filter(x=>x.definition).map(x=>[[x.card.set,x.card.number,x.card.name].join('|'),x.definition.retreat]));
 function getRealRetreatCost(c){if(!c)return null;const key=[c.set,c.number,c.name].join('|');return realRetreatCosts.has(key)?realRetreatCosts.get(key):null;}
 function canStartRealRetreat(s){const cost=s?getRealRetreatCost(s.active):null;return !!s&&s.placementDone&&s.turnSide==='player'&&!s.deckOut&&!s.retreatedThisTurn&&s.bench.length>0&&cost!==null&&s.activeEnergy.length>=cost;}
 function canFinishRealRetreat(s,index){return canStartRealRetreat(s)&&s.retreatSelecting&&Number.isInteger(index)&&index>=0&&index<s.bench.length;}
@@ -1019,8 +1055,8 @@ function runRealRegression(){
  test('ワザ登録：メガゴルーグex 300と反動30',()=>{const a=realAttackRegistry.get('メガゴルーグex').attacks[0];return a.baseDamage===300&&a.selfDamage===30});
  test('ワザ登録：メガピクシーex 120+最大160',()=>{const a=realAttackRegistry.get('メガピクシーex').attacks[0];return a.baseDamage===120&&a.bonus.max*a.bonus.perCard===160});
  test('ワザ登録：ゴビット 50',()=>realAttackRegistry.get('ゴビット').attacks[0].baseDamage===50);
- test('ワザ登録：未確認コストは攻撃不可',()=>!realAttackReadiness({name:'メガゴルーグex'},Array(10).fill({name:'基本超エネルギー'}),12).ready);
- test('ワザ登録：未登録カードは攻撃不可',()=>!realAttackReadiness({name:'ニャースex'},[],3).ready);
+ test('ワザ登録：実装前は攻撃不可',()=>!realAttackReadiness({name:'メガゴルーグex',set:'M6',number:'033/076',category:'pokemon'},Array(10).fill({name:'基本超エネルギー',category:'energy'}),12).ready);
+ test('ワザ登録：未登録カードは攻撃不可',()=>!realAttackReadiness({name:'架空の未登録ポケモン',set:'ZZ',number:'000/000',category:'pokemon'},[],3).ready);
  test('エネ判定：基本超1枚は超1個を満たす',()=>realCheckEnergyCost(['psychic'],[{name:'基本超エネルギー',category:'energy'}]).ready);
  test('エネ判定：無色は基本超で満たせる',()=>realCheckEnergyCost(['colorless'],[{name:'基本超エネルギー',category:'energy'}]).ready);
  test('エネ判定：超2+無色1を3枚で満たす',()=>realCheckEnergyCost(['psychic','psychic','colorless'],Array.from({length:3},()=>({name:'基本超エネルギー',category:'energy'}))).ready);
@@ -1030,6 +1066,19 @@ function runRealRegression(){
  test('エネ判定：コスト未確認は攻撃不可',()=>!realCheckEnergyCost(null,Array(5).fill({name:'基本超エネルギー',category:'energy'})).ready);
  test('エネ判定：ポケモンカードをエネルギーとして数えない',()=>!realCheckEnergyCost(['colorless'],[{name:'ピッピ',category:'pokemon'}]).ready);
 
+
+ test('データ監査：採用ポケモン全収録登録',()=>realCardAudit().every(x=>!!x.definition));
+ test('データ監査：全カードのHPとにげるが整数',()=>realCardAudit().every(x=>Number.isInteger(x.definition?.hp)&&Number.isInteger(x.definition?.retreat)&&x.definition.retreat>=0));
+ test('データ監査：全ワザのコストが確定',()=>realCardAudit().every(x=>x.definition?.attacks.every(a=>Array.isArray(a.energyCost))));
+ test('にげる：ゴビットとメガゴルーグは3',()=>getRealRetreatCost({name:'ゴビット',set:'M6',number:'032/076'})===3&&getRealRetreatCost({name:'メガゴルーグex',set:'M6',number:'033/076'})===3);
+ test('にげる：スボミーは0',()=>getRealRetreatCost({name:'スボミー',set:'SV8a',number:'001/187'})===0);
+ test('にげる：メガガルーラは3',()=>getRealRetreatCost({name:'メガガルーラex',set:'M1S',number:'051/063'})===3);
+ test('ワザ：メガピクシー超2個',()=>realAttackRegistry.get('メガピクシーex').attacks[0].energyCost.join(',')==='psychic,psychic');
+ test('ワザ：ゴビット超2個',()=>realAttackRegistry.get('ゴビット').attacks[0].energyCost.join(',')==='psychic,psychic');
+ test('ワザ：スボミーの0エネルギー',()=>realAttackRegistry.get('スボミー').attacks[0].energyCost.length===0);
+ test('データ監査：収録番号違いは誤登録しない',()=>realCardDefinition({name:'ピッピ',set:'M3',number:'999/080',category:'pokemon'})===null);
+ test('ワザ：CPUメガガルーラはたね',()=>realAttackRegistry.get('メガガルーラex').stage===0);
+ test('ワザ：ラティアス両収録番号に対応',()=>!!realCardDefinition({name:'ラティアスex',set:'MC',number:'312/742',category:'pokemon'})&&!!realCardDefinition({name:'ラティアスex',set:'M2a',number:'075/193',category:'pokemon'}));
  test('サイド：不正な枚数を拒否',()=>{try{realPrizeContext(7,6);return false}catch(e){return true}});
  return results;
 }
@@ -1132,4 +1181,6 @@ function renderRealTurn(){
 document.getElementById('realFirst').onclick=()=>startRealTurns('player');
 document.getElementById('realSecond').onclick=()=>startRealTurns('cpu');
 document.getElementById('realTurnAdvance').onclick=advanceRealTurn;
+
+renderRealCardAudit();
 </script></body></html>
