@@ -707,7 +707,18 @@ function finishRealPlacement(){
  if(realPlacementCount(s)!==60)throw Error('初期配置の枚数が一致しない');
  s.placementDone=true;renderRealOpening();
 }
-// β2.9.12: UI専用。既存のルール判定・操作関数は変更しない。
+// β2.9.13: 盤面の実データから付属エネルギーを表示する（カード状態は変更しない）。
+function realAttachedEnergySummary(s,location,index){
+ const cards=location==='active'?(s.activeEnergy||[]):((s.benchEnergy||[])[index]||[]);
+ if(!cards.length)return '🔮 0枚';
+ const counts=new Map();
+ for(const card of cards){
+  const name=typeof card==='string'?card:(card?.name||'種類未設定のエネルギー');
+  counts.set(name,(counts.get(name)||0)+1);
+ }
+ return '🔮 '+cards.length+'枚（'+[...counts].map(([name,count])=>name+' ×'+count).join(' / ')+'）';
+}
+// β2.9.13: UI専用。既存のルール判定・操作関数は変更しない。
 function closeRealActionModal(){document.getElementById('realActionModal').hidden=true;}
 function cancelRealActionModal(){
  closeRealActionModal();const s=realOpeningState;if(!s)return;
@@ -725,7 +736,7 @@ function openRealActionModal(kind){
  if(!valid.length){closeRealActionModal();return;}
  title.textContent=kind==='energy'?'🔮 エネルギーを付ける先':kind==='evolution'?'🌙 進化させるポケモン':'🏃 交代先を選ぶ';
  hint.textContent=kind==='energy'?'基本超エネルギーを1枚付けるよ。':kind==='evolution'?'進化できるポケモンだけ表示しているよ。':'にげるコストをトラッシュして交代するよ。';
- valid.forEach(t=>{const b=document.createElement('button');b.type='button';b.textContent=t.label+'：'+t.card.name;b.onclick=()=>{
+ valid.forEach(t=>{const b=document.createElement('button');b.type='button';b.textContent=t.label+'：'+t.card.name+'\n'+realAttachedEnergySummary(s,t.location,t.index);b.style.whiteSpace='pre-line';b.onclick=()=>{
   closeRealActionModal();
   if(kind==='energy'&&canAttachRealEnergy(s))attachRealEnergy(t.location,t.index);
   else if(kind==='evolution'&&canEvolveRealAt(s,t.location,t.index))evolveRealAt(t.location,t.index);
