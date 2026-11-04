@@ -651,15 +651,15 @@ function makeCpuRealOpening(){
  while(true){hand=deck.splice(-7);if(hand.some(cpuIsBasic))break;deck=shuffle(deck.concat(hand));hand=[];mulligans++;if(mulligans>1000)throw Error('CPU初手の試行上限');}
  const prizes=deck.splice(-6);
  const basicIndex=hand.findIndex(cpuIsBasic);const active=hand.splice(basicIndex,1)[0];
- return {deck,hand,prizes,active,bench:[],trash:[],mulligans,turns:0,deckOut:false};
+ return {deck,hand,prizes,active,bench:[],trash:[],mulligans,turns:0,deckOut:false,activeEnergy:[],benchEnergy:[],energyAttachedThisTurn:false};
 }
-function cpuRealCount(c){return c.deck.length+c.hand.length+c.prizes.length+(c.active?1:0)+c.bench.length+c.trash.length}
-function inspectCpuReal(c){if(!c)return ['CPU盤面が未作成'];const issues=[];if(cpuRealCount(c)!==60)issues.push('CPU合計が60枚ではない');if(!c.active)issues.push('CPUバトル場が空');if(c.bench.length>5)issues.push('CPUベンチが6匹以上');if(c.prizes.length>6)issues.push('CPUサイドが6枚超');return issues}
+function cpuRealCount(c){return c.deck.length+c.hand.length+c.prizes.length+(c.active?1:0)+c.bench.length+c.trash.length+(c.activeEnergy||[]).length+(c.benchEnergy||[]).reduce((n,a)=>n+a.length,0)}
+function inspectCpuReal(c){if(!c)return ['CPU盤面が未作成'];const issues=[];if(cpuRealCount(c)!==60)issues.push('CPU合計が60枚ではない');if(!c.active)issues.push('CPUバトル場が空');if(c.bench.length>5)issues.push('CPUベンチが6匹以上');if(!Array.isArray(c.activeEnergy)||!Array.isArray(c.benchEnergy)||c.benchEnergy.length!==c.bench.length)issues.push('CPUエネルギー配列が不正');if(c.prizes.length>6)issues.push('CPUサイドが6枚超');return issues}
 function renderCpuReal(){
  const root=document.getElementById('cpuRealSummary');if(!root)return;
  const s=realOpeningState,c=s&&s.cpuReal;
  if(!c){root.textContent='未開始：自分の初手を配るとCPU側も初期配置するよ。';return}
- root.textContent='🤖 バトル場：'+c.active.name+' / ベンチ '+c.bench.length+'匹 / 手札 '+c.hand.length+'枚（非公開） / 山札 '+c.deck.length+'枚 / サイド '+c.prizes.length+'枚（非公開） / トラッシュ '+c.trash.length+'枚 / 合計 '+cpuRealCount(c)+'枚 / マリガン '+c.mulligans+'回';
+ root.textContent='🤖 バトル場：'+c.active.name+'（超エネルギー '+c.activeEnergy.length+'枚） / ベンチ '+c.bench.length+'匹'+(c.bench.length?'［'+c.bench.map((p,i)=>p.name+'：'+c.benchEnergy[i].length+'枚').join('、')+'］':'')+' / 手札 '+c.hand.length+'枚（非公開） / 山札 '+c.deck.length+'枚 / サイド '+c.prizes.length+'枚（非公開） / トラッシュ '+c.trash.length+'枚 / 合計 '+cpuRealCount(c)+'枚 / マリガン '+c.mulligans+'回';
 }
 
 let realOpeningState=null;
@@ -947,11 +947,41 @@ function runRealRegression(){
  test('CPUのたね判定',()=>cpuIsBasic({category:'pokemon',name:'ゴビット'})&&!cpuIsBasic({category:'pokemon',name:'メガゴルーグex'}));
  test('CPUドロー枚数整合',()=>{const c=makeCpuRealOpening();const d=c.deck.length,h=c.hand.length;c.hand.push(c.deck.pop());return c.deck.length===d-1&&c.hand.length===h+1&&cpuRealCount(c)===60});
  test('CPU初期状態診断',()=>inspectCpuReal(makeCpuRealOpening()).length===0);
+ test('CPUベンチ展開：たねのみ最大5匹',()=>{const c=makeCpuRealOpening();c.hand=[...Array.from({length:7},()=>({name:'ゴビット',category:'pokemon'})),{name:'メガゴルーグex',category:'pokemon'}];const n=cpuRealDeploy(c,[]);return n===5&&c.bench.length===5&&c.benchEnergy.length===5&&c.hand.length===3});
+ test('CPUエネルギー：1ターン1枚',()=>{const c=makeCpuRealOpening();c.hand=[{name:'基本超エネルギー',category:'energy'},{name:'基本超エネルギー',category:'energy'}];return cpuRealAttach(c,[])&&!cpuRealAttach(c,[])&&c.activeEnergy.length===1&&c.hand.length===1});
+ test('CPUエネルギー：次の番は再配置可能',()=>{const c=makeCpuRealOpening();c.hand=[{name:'基本超エネルギー',category:'energy'},{name:'基本超エネルギー',category:'energy'}];cpuRealAttach(c,[]);c.energyAttachedThisTurn=false;return cpuRealAttach(c,[])&&c.activeEnergy.length===2});
+ test('CPU行動：カード60枚保存',()=>{const c=makeCpuRealOpening();cpuRealTakeActions(c,[]);return cpuRealCount(c)===60&&inspectCpuReal(c).length===0});
+ test('CPU行動：進化カードをベンチに出さない',()=>{const c=makeCpuRealOpening();c.hand=[{name:'メガゴルーグex',category:'pokemon'}];cpuRealDeploy(c,[]);return c.bench.length===0&&c.hand.length===1});
  test('サイド：不正な枚数を拒否',()=>{try{realPrizeContext(7,6);return false}catch(e){return true}});
  return results;
 }
 document.getElementById('realDiagnostics').onclick=()=>{const issues=inspectRealState(realOpeningState);document.getElementById('realDiagnosticResult').textContent=issues.length?'⚠️ '+issues.join(' / '):'✅ 実カード状態：定義済みの異常なし（'+realPlacementCount(realOpeningState)+'/60枚）'};
 document.getElementById('realRegression').onclick=()=>{const r=runRealRegression();document.getElementById('realDiagnosticResult').textContent='🧪 実カード自動テスト：'+r.filter(x=>x.pass).length+'/'+r.length+' PASS\n'+r.map(x=>(x.pass?'PASS ':'FAIL ')+x.name+(x.error?'：'+x.error:'')).join('\n')};
+// β2.9.14: CPU実カードの最小合法行動。カード効果・攻撃・進化・特殊エネルギーは未実装。
+// たね判定は検証済みの明示リストのみを使用し、未確認カードを勝手に場に出さない。
+function cpuRealDeploy(c,logs){
+ let deployed=0;
+ for(let i=0;i<c.hand.length&&c.bench.length<5;){
+  if(!cpuIsBasic(c.hand[i])){i++;continue}
+  const card=c.hand.splice(i,1)[0];c.bench.push(card);c.benchEnergy.push([]);deployed++;
+  logs.push('🤖 ベンチに'+card.name+'を出した');
+ }
+ return deployed;
+}
+function cpuRealAttach(c,logs){
+ if(c.energyAttachedThisTurn)return false;
+ const i=c.hand.findIndex(x=>x.category==='energy'&&x.name==='基本超エネルギー');
+ if(i<0)return false;
+ // 初期AIはバトルポケモンを優先。ワザのコストや効果はまだ評価しない。
+ c.activeEnergy.push(c.hand.splice(i,1)[0]);c.energyAttachedThisTurn=true;
+ logs.push('🤖 バトル場の'+c.active.name+'に基本超エネルギーを1枚付けた（合計'+c.activeEnergy.length+'枚）');
+ return true;
+}
+function cpuRealTakeActions(c,logs){
+ if(!c||c.deckOut)return;
+ cpuRealDeploy(c,logs);
+ cpuRealAttach(c,logs);
+}
 // β2.9.2: 実カードの番進行は既存の仮カード対戦エンジンと独立。
 // CPUの初期配置とドローを実装済み。CPUの能動的な行動は未実装。
 function startRealTurns(first){
@@ -968,10 +998,11 @@ function beginRealTurn(){
   else if(s.deck.length===0){s.deckOut=true;s.turnLog.unshift('⚠️ 山札が0枚のため、自分の番の開始時にドローできない。ここで検証停止（勝敗処理は未実装）');}
   else {const c=s.deck.pop();s.hand.push(c);s.turnLog.unshift('🃏 自分の'+s.playerTurns+'番目：'+c.name+'を1枚ドロー');}
  }else{
-  s.cpuTurns++;const c=s.cpuReal;c.turns++;
+  s.cpuTurns++;const c=s.cpuReal;c.turns++;c.energyAttachedThisTurn=false;
   if(s.firstSide==='cpu'&&c.turns===1){s.turnLog.unshift('🤖 CPUの1番目：先攻最初の番なのでドローなし');}
   else if(c.deck.length===0){c.deckOut=true;s.deckOut=true;s.turnLog.unshift('⚠️ CPU山札切れ：検証停止（勝敗処理は未実装）');}
   else{c.hand.push(c.deck.pop());s.turnLog.unshift('🤖 CPUの'+c.turns+'番目：1枚ドロー（手札は非公開）');}
+  if(!s.deckOut){const logs=[];cpuRealTakeActions(c,logs);s.turnLog.unshift(...logs.reverse());}
  }
  s.turnLog=s.turnLog.slice(0,12);renderRealOpening();
 }
