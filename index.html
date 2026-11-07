@@ -1216,6 +1216,14 @@ function inspectRealState(s){
 }
 function runRealRegression(){
  const results=[];const test=(name,fn)=>{try{if(!fn())throw Error('条件不成立');results.push({name,pass:true})}catch(e){results.push({name,pass:false,error:e.message})}};
+ // β3.6.2: ポケパッドの判定はルール属性に依存し、未知カードは対象外。
+ test('ポケパッド：通常ピッピを選べる',()=>REAL_SEARCH_RULES.pokePad({category:'pokemon',name:'ピッピ',set:'M3',number:'029/080'}));
+ test('ポケパッド：メガピクシーexを除外',()=>!REAL_SEARCH_RULES.pokePad({category:'pokemon',name:'メガピクシーex',set:'M3',number:'030/080'}));
+ test('ポケパッド：通常フレフワンを選べる',()=>REAL_SEARCH_RULES.pokePad({category:'pokemon',name:'フレフワン',set:'M3',number:'035/080'}));
+ test('ポケパッド：ルール属性不明は除外',()=>!REAL_SEARCH_RULES.pokePad({category:'pokemon',name:'未確認のポケモン'}));
+ test('ポケパッド：名前にexを含んでも明示的にルールなしなら選べる',()=>REAL_SEARCH_RULES.pokePad({category:'pokemon',name:'テストex',hasRule:false}));
+ test('ポケパッド：名前が通常でも明示的にルールありなら除外',()=>!REAL_SEARCH_RULES.pokePad({category:'pokemon',name:'テスト',hasRule:true}));
+ test('ポケパッド：エネルギーは除外',()=>!REAL_SEARCH_RULES.pokePad({category:'energy',name:'基本超エネルギー'}));
  // β3.5: 効果登録基盤の独立テスト。対戦状態は変更しない。
  test('効果基盤：既知の効果を認識',()=>!!realEffectDescriptor('selfDamage'));
  test('効果基盤：未知の効果を拒否',()=>realEffectDescriptor('not-a-real-effect')===null);
@@ -1805,9 +1813,34 @@ function realEffectAudit(){
 
 // β3.6: サーチ／回収の共通部品（純粋な条件判定とカード移動）。
 // カードごとの実行UI・コスト支払いは、公式テキスト確認後にこの部品へ接続する。
+// β3.6.2: 名前の正規表現から「ルールを持たない」を推測しない。
+// 登録済みカードの収録情報と公式カード種別の明示的な属性だけで判定。
+// 不明は null としてサーチ対象から除外する（誤って選べない安全側）。
+const REAL_POKEMON_RULE_FLAGS=Object.freeze({
+ 'M3|029/080|ピッピ':false,
+ 'M3|030/080|メガピクシーex':true,
+ 'MC|286/742|ピクシー':false,
+ 'MC|287/742|リーリエのピッピex':true,
+ 'M3|034/080|シュシュプ':false,
+ 'M3|035/080|フレフワン':false,
+ 'MC|489/742|キチキギスex':true,
+ 'MC|312/742|ラティアスex':true,
+ 'SV8a|001/187|スボミー':false,
+ 'M6|032/076|ゴビット':false,
+ 'M6|033/076|メガゴルーグex':true,
+ 'M3|061/080|ニャースex':true,
+ 'M1S|051/063|メガガルーラex':true,
+ 'M2a|075/193|ラティアスex':true
+});
+function realPokemonRuleStatus(card){
+ if(!card||card.category!=='pokemon')return null;
+ if(typeof card.hasRule==='boolean')return card.hasRule;
+ const key=[card.set||'',card.number||'',card.name||''].join('|');
+ return Object.prototype.hasOwnProperty.call(REAL_POKEMON_RULE_FLAGS,key)?REAL_POKEMON_RULE_FLAGS[key]:null;
+}
 const REAL_SEARCH_RULES=Object.freeze({
  ultraBall:c=>c?.category==='pokemon',
- pokePad:c=>c?.category==='pokemon'&&!/ex|EX|V|GX|BREAK|プリズムスター/.test(c.name||''),
+ pokePad:c=>c?.category==='pokemon'&&realPokemonRuleStatus(c)===false,
  buddyPoffin:c=>c?.category==='pokemon'&&realAttackRegistry.get(c.name)?.stage===0&&realAttackRegistry.get(c.name)?.hp<=70,
  energyRecycle:c=>c?.category==='energy'&&/^基本.+エネルギー$/.test(c.name||''),
  superRod:c=>c?.category==='pokemon'||(c?.category==='energy'&&/^基本.+エネルギー$/.test(c.name||'')),
