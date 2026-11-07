@@ -35,7 +35,7 @@
 <nav aria-label="画面切替" class="screen-nav"><button id="navHome">🏠 ホーム</button><button id="navDeck">🃏 デッキ編集</button><button id="navBank">🗃️ データバンク</button><button id="navBattle">⚔️ CPU対戦</button></nav>
 <main id="homeScreen"><section><h2>🏠 ホーム</h2><p>画面を選んでね。保存したデッキはCPU対戦開始時に読み込むよ。</p><div class="home-tile">🃏 デッキ編集：自分用・CPU用を保存</div><div class="home-tile">⚔️ CPU対戦：最新の保存デッキで新しい対戦を開始</div><div class="home-tile">🗃️ カードデータバンク：検索・詳細・収録情報を確認</div><p class="muted">複数デッキスロットと対戦前のデッキ選択は将来実装予定。現時点では既存の自分用・CPU用の2デッキを維持するよ。</p></section></main>
 <main class="screen-hidden" id="deckScreen"><section id="deckEditor"><h2>🃏 デッキ構築（β2.7）</h2><p class="muted">自分とCPUのデッキを個別に編集・保存できるよ。通常カードは同名最大4枚、基本エネルギーは上限なし。仮カードのみ。</p><div class="actions"><button id="deckPlayerTab">👤 自分用</button><button id="deckCpuTab">🤖 CPU用</button></div><p class="notice" id="deckTotal"></p><div id="deckRows"></div><div class="actions"><button id="deckSave">💾 デッキを保存</button><button id="deckDefault">↩️ 初期デッキに戻す</button></div><p aria-live="polite" class="muted" id="deckMessage"></p><p class="muted">保存済みの構築は次の「新しい対戦」から反映。保存先はこのブラウザのローカルストレージ。編集しても保存するまでは対戦に反映されないよ。</p></section>
-</main><main class="screen-hidden" id="bankScreen"><section><h2>🗃️ カードデータバンク</h2><p class="muted">現在登録済みの仮カード。収録IDは開発用の仮番号で、公式カード番号ではないよ。レギュレーションの使用可否は公式情報確認まで未判定。</p><div class="bank-controls"><input aria-label="カード検索" autocomplete="on" id="bankQuery" lang="ja" placeholder="カード名・ID（ひらがなOK）で検索" type="text"/><div class="bank-input-actions"><button id="bankPaste" type="button">📋 コピーした文字を貼り付け</button><button id="bankClear" type="button">✖ 検索を消去</button></div><p class="muted">日本語キーボードが出ない場合は、メモなどでカード名をコピーして検索欄に長押しで貼り付けてね。貼り付けボタンも使えるよ。</p><select aria-label="種類" id="bankKind"><option value="all">すべて</option><option value="pokemon">ポケモン</option><option value="trainer">トレーナーズ</option><option value="energy">エネルギー</option></select><select aria-label="確認状況" id="bankVerification"><option value="all">確認状況：すべて</option><option value="provisional">仮データ</option><option value="verified">公式確認済み</option></select></div><p class="muted" id="bankCount"></p><div id="bankRows"></div><div aria-live="polite" class="bank-detail" id="bankDetail">カードを選ぶと詳細を表示するよ。</div></section><section id="realDeckPanel"><h2>🌙 β2.8 実カード登録：メガピクシーex</h2><p class="muted">デッキコード：F5kbvF-2gmLzS-dVfbVV。スクリーンショットから60枚の構成を転記。効果確認済みカードのみ公式リンクを掲載。現時点では閲覧専用で、CPU対戦は従来の仮デッキのままだよ。</p><p class="muted" id="realDeckCount"></p><div id="realDeckRows"></div></section></main><main class="screen-hidden" id="battleScreen"><section id="realOpeningPanel"><h2>🌙 実カード対戦ボード（β2.9.22.1）</h2><p class="muted">カードをタップして操作する実カード盤面。CPUは初期配置・ドロー・ベンチ展開・基本超エネルギー配置・進化に対応。β2.9.22.1では攻撃後の追加行動を禁止し、重複するワザ選択ボタンを撤去。CPUの基本ダメージ攻撃を検証実装済み。特殊効果は未実装。旧仮カード対戦は下の折りたたみから利用できるよ。</p><div class="real-zone real-setup"><h3>🎮 対戦準備</h3><button id="realOpeningStart" type="button">🃏 実カードで初手を配る</button><p class="notice" id="realOpeningStatus">未開始</p><div class="actions"><button id="realPlacementUndo" type="button">↩️ 最後の配置を戻す</button><button id="realPlacementFinish" type="button">✅ 配置完了</button></div></div><div class="real-board"><div class="board-label">🤖 CPU / メガゴルーグex</div><div class="real-zone cpu-zone"><strong>🪑 CPUのベンチ（最大5匹）</strong><div class="hand" id="cpuRealBench"></div></div><div class="real-zone cpu-zone"><strong>🤖 CPUのバトル場</strong><div class="hand" id="cpuRealActive"></div></div><div class="real-zone cpu-zone"><strong>📋 CPUの公開情報</strong><p class="muted">手札・サイドの中身は非公開。伝説の溶岩洞の効果は未実装。</p><p class="notice" id="cpuRealSummary">未開始</p></div><div class="board-label">⚔️ 対戦フィールド</div><div class="real-zone"><strong>🌙 自分のバトル場</strong><div class="hand" id="realPlacementActive"></div></div><div class="real-zone"><strong>🪑 自分のベンチ（最大5匹）</strong><div class="hand" id="realPlacementBench"></div></div><div class="board-label">🃏 自分の手札</div><div class="real-zone"><div class="hand" id="realOpeningHand"></div></div></div><p class="muted" id="realOpeningCounts"></p><div class="real-zone turn-controls"><strong>⏳ 番進行・操作</strong><p class="muted">先攻・後攻を選んでから開始。CPUは登録デッキから自動ドローするよ。CPUの基本ダメージ攻撃は検証実装済み。トレーナーズ使用は未実装。先攻プレイヤーの最初の番はドローしないよ。</p><div class="actions"><button id="realFirst" type="button">👤 自分が先攻</button><button id="realSecond" type="button">👤 自分が後攻</button></div><p class="notice" id="realTurnStatus">初期配置を完了してね。</p><div class="actions"><button id="realTurnAdvance" type="button">➡️ 次の番へ</button></div><p class="notice" id="realEnergyStatus">基本超エネルギーは自分の番に1枚だけ手張りできるよ。</p><button id="realEnergyCancel" type="button">✖ エネルギー選択を解除</button><p class="notice" id="realEvolutionStatus">進化は自分の2番目以降の番から可能だよ。</p><button id="realEvolutionCancel" type="button">✖ 進化選択を解除</button><p class="notice" id="realRetreatStatus">にげる：自分の番に1回。採用ポケモンの基本コストを登録済み。</p><div class="actions"><button id="realRetreatStart" type="button">🏃 にげる（交代先を選ぶ）</button><button id="realRetreatCancel" type="button">✖ にげるを取り消す</button></div><!-- 旧サポート操作UIは廃止。既存のイベント接続と回帰テストのため、非表示の互換要素のみ保持。操作は手札タップ→確認ダイアログへ統一。 --><div hidden aria-hidden="true"><p id="realSupportStatus"></p><button id="realSupportUse" type="button" tabindex="-1">使用</button><button id="realSupportCancel" type="button" tabindex="-1">解除</button></div><p class="log" id="realTurnLog"></p></div><div class="real-zone" id="realAttackPrep"><strong>⚔️ ワザ情報・攻撃準備（β2.9.22.1）</strong><p class="muted">ワザに必要なタイプ・無色コストと付いているエネルギーを比較する準備ができたよ。ワザごとにエネルギー充足と実装区分を表示。特殊ワザ効果はまだ未実装だよ。CPUは基本ダメージで攻撃するよ。</p><div id="realAttackPrepRows" class="bank-detail">対戦準備中</div><p class="notice" id="realAttackOutcome" aria-live="polite">自分の番に通常ワザを選択して攻撃できるよ。</p></div><div class="real-zone" id="realCardAuditPanel"><strong>📚 β2.9.22.1 ワザデータ総点検・カード監査</strong><p class="muted">両デッキの全採用ワザを収録番号ごとに点検。通常攻撃候補（①）と特殊効果待ち（②）を区別。特殊効果の攻撃実行は未実装。</p><div id="realCardAuditRows" class="bank-detail">読み込み中</div></div><details class="real-advanced"><summary>🧪 開発者用：山札・実カード診断（タップで開く）</summary><details><summary>📋 山札の残りカード一覧</summary><div class="bank-detail" id="realOpeningDeck"></div></details><div class="home-tile"><strong>🧪 β2.9.8 実カード専用診断</strong><p class="muted">自分とCPUの60枚整合性、サイド条件、サポート処理を検証。既存の35項目とは別のテストだよ。テストは模擬状態を使用し、現在の対戦を変更しないよ。</p><div class="actions"><button id="realDiagnostics" type="button">🔍 実カード状態を診断</button><button id="realRegression" type="button">🧪 実カード自動テスト</button></div><div class="actions"><button id="realTraceCheck" type="button">🔎 詳細診断を記録</button><button id="realTraceCopy" type="button">📋 追跡ログをコピー</button><button id="realTraceClear" type="button">🗑️ 追跡履歴を消去</button></div><p class="muted">直近の操作・場の配列長・カード総数を記録。ログには手札・山札のカード名を含めないよ。履歴はページ更新で消えるよ。</p><pre class="log" id="realTraceOutput">追跡開始待ち</pre><pre class="log" id="realDiagnosticResult" style="white-space:pre-wrap">未実行</pre></div></details></section>
+</main><main class="screen-hidden" id="bankScreen"><section><h2>🗃️ カードデータバンク</h2><p class="muted">現在登録済みの仮カード。収録IDは開発用の仮番号で、公式カード番号ではないよ。レギュレーションの使用可否は公式情報確認まで未判定。</p><div class="bank-controls"><input aria-label="カード検索" autocomplete="on" id="bankQuery" lang="ja" placeholder="カード名・ID（ひらがなOK）で検索" type="text"/><div class="bank-input-actions"><button id="bankPaste" type="button">📋 コピーした文字を貼り付け</button><button id="bankClear" type="button">✖ 検索を消去</button></div><p class="muted">日本語キーボードが出ない場合は、メモなどでカード名をコピーして検索欄に長押しで貼り付けてね。貼り付けボタンも使えるよ。</p><select aria-label="種類" id="bankKind"><option value="all">すべて</option><option value="pokemon">ポケモン</option><option value="trainer">トレーナーズ</option><option value="energy">エネルギー</option></select><select aria-label="確認状況" id="bankVerification"><option value="all">確認状況：すべて</option><option value="provisional">仮データ</option><option value="verified">公式確認済み</option></select></div><p class="muted" id="bankCount"></p><div id="bankRows"></div><div aria-live="polite" class="bank-detail" id="bankDetail">カードを選ぶと詳細を表示するよ。</div></section><section id="realDeckPanel"><h2>🌙 β2.8 実カード登録：メガピクシーex</h2><p class="muted">デッキコード：F5kbvF-2gmLzS-dVfbVV。スクリーンショットから60枚の構成を転記。効果確認済みカードのみ公式リンクを掲載。現時点では閲覧専用で、CPU対戦は従来の仮デッキのままだよ。</p><p class="muted" id="realDeckCount"></p><div id="realDeckRows"></div></section></main><main class="screen-hidden" id="battleScreen"><section id="realOpeningPanel"><h2>🌙 実カード対戦ボード（β2.9.23）</h2><p class="muted">カードをタップして操作する実カード盤面。CPUは初期配置・ドロー・ベンチ展開・基本超エネルギー配置・進化に対応。β2.9.23では攻撃後の追加行動を禁止し、重複するワザ選択ボタンを撤去。CPUの基本ダメージ攻撃を検証実装済み。特殊効果は未実装。旧仮カード対戦は下の折りたたみから利用できるよ。</p><div class="real-zone real-setup"><h3>🎮 対戦準備</h3><button id="realOpeningStart" type="button">🃏 実カードで初手を配る</button><p class="notice" id="realOpeningStatus">未開始</p><div class="actions"><button id="realPlacementUndo" type="button">↩️ 最後の配置を戻す</button><button id="realPlacementFinish" type="button">✅ 配置完了</button></div></div><div class="real-board"><div class="board-label">🤖 CPU / メガゴルーグex</div><div class="real-zone cpu-zone"><strong>🪑 CPUのベンチ（最大5匹）</strong><div class="hand" id="cpuRealBench"></div></div><div class="real-zone cpu-zone"><strong>🤖 CPUのバトル場</strong><div class="hand" id="cpuRealActive"></div></div><div class="real-zone cpu-zone"><strong>📋 CPUの公開情報</strong><p class="muted">手札・サイドの中身は非公開。伝説の溶岩洞の効果は未実装。</p><p class="notice" id="cpuRealSummary">未開始</p></div><div class="board-label">⚔️ 対戦フィールド</div><div class="real-zone"><strong>🌙 自分のバトル場</strong><div class="hand" id="realPlacementActive"></div></div><div class="real-zone"><strong>🪑 自分のベンチ（最大5匹）</strong><div class="hand" id="realPlacementBench"></div></div><div class="board-label">🃏 自分の手札</div><div class="real-zone"><div class="hand" id="realOpeningHand"></div></div></div><p class="muted" id="realOpeningCounts"></p><div class="real-zone turn-controls"><strong>⏳ 番進行・操作</strong><p class="muted">先攻・後攻を選んでから開始。CPUは登録デッキから自動ドローするよ。CPUの基本ダメージ攻撃は検証実装済み。トレーナーズ使用は未実装。先攻プレイヤーの最初の番はドローしないよ。</p><div class="actions"><button id="realFirst" type="button">👤 自分が先攻</button><button id="realSecond" type="button">👤 自分が後攻</button></div><p class="notice" id="realTurnStatus">初期配置を完了してね。</p><div class="actions"><button id="realTurnAdvance" type="button">➡️ 次の番へ</button></div><p class="notice" id="realEnergyStatus">基本超エネルギーは自分の番に1枚だけ手張りできるよ。</p><button id="realEnergyCancel" type="button">✖ エネルギー選択を解除</button><p class="notice" id="realEvolutionStatus">進化は自分の2番目以降の番から可能だよ。</p><button id="realEvolutionCancel" type="button">✖ 進化選択を解除</button><p class="notice" id="realRetreatStatus">にげる：自分の番に1回。採用ポケモンの基本コストを登録済み。</p><div class="actions"><button id="realRetreatStart" type="button">🏃 にげる（交代先を選ぶ）</button><button id="realRetreatCancel" type="button">✖ にげるを取り消す</button></div><!-- 旧サポート操作UIは廃止。既存のイベント接続と回帰テストのため、非表示の互換要素のみ保持。操作は手札タップ→確認ダイアログへ統一。 --><div hidden aria-hidden="true"><p id="realSupportStatus"></p><button id="realSupportUse" type="button" tabindex="-1">使用</button><button id="realSupportCancel" type="button" tabindex="-1">解除</button></div><p class="log" id="realTurnLog"></p></div><div class="real-zone" id="realAttackPrep"><strong>⚔️ ワザ情報・攻撃準備（β2.9.23）</strong><p class="muted">ワザに必要なタイプ・無色コストと付いているエネルギーを比較する準備ができたよ。ワザごとにエネルギー充足と実装区分を表示。特殊ワザ効果はまだ未実装だよ。CPUは基本ダメージで攻撃するよ。</p><div id="realAttackPrepRows" class="bank-detail">対戦準備中</div><p class="notice" id="realAttackOutcome" aria-live="polite">自分の番に通常ワザを選択して攻撃できるよ。</p></div><div class="real-zone" id="realCardAuditPanel"><strong>📚 β2.9.23 ワザデータ総点検・カード監査</strong><p class="muted">両デッキの全採用ワザを収録番号ごとに点検。通常攻撃候補（①）と特殊効果待ち（②）を区別。特殊効果の攻撃実行は未実装。</p><div id="realCardAuditRows" class="bank-detail">読み込み中</div></div><details class="real-advanced"><summary>🧪 開発者用：山札・実カード診断（タップで開く）</summary><details><summary>📋 山札の残りカード一覧</summary><div class="bank-detail" id="realOpeningDeck"></div></details><div class="home-tile"><strong>🧪 β2.9.8 実カード専用診断</strong><p class="muted">自分とCPUの60枚整合性、サイド条件、サポート処理を検証。既存の35項目とは別のテストだよ。テストは模擬状態を使用し、現在の対戦を変更しないよ。</p><div class="actions"><button id="realDiagnostics" type="button">🔍 実カード状態を診断</button><button id="realRegression" type="button">🧪 実カード自動テスト</button></div><div class="actions"><button id="realTraceCheck" type="button">🔎 詳細診断を記録</button><button id="realTraceCopy" type="button">📋 追跡ログをコピー</button><button id="realTraceClear" type="button">🗑️ 追跡履歴を消去</button></div><p class="muted">直近の操作・場の配列長・カード総数を記録。ログには手札・山札のカード名を含めないよ。履歴はページ更新で消えるよ。</p><pre class="log" id="realTraceOutput">追跡開始待ち</pre><pre class="log" id="realDiagnosticResult" style="white-space:pre-wrap">未実行</pre></div></details></section>
 
 
 
@@ -48,7 +48,7 @@
 
 
 
-<details class="legacy-prototype"><summary>🧰 旧ピカチュウex仮カード対戦・診断（タップで開く）</summary><section><h2>⚔️ CPU対戦</h2><p class="muted">画面の移動だけでは対戦はリセットされないよ。「新しい対戦」を押すと保存済みの自分・CPUデッキを読み込み、診断基準も固定するよ。</p><button id="battleStart">🎮 保存済みデッキで新しい対戦</button><p class="muted" id="battleDeckInfo"></p></section><section id="setup"><h2>🪙 コイントス</h2><p id="coinMessage">オモテかウラを予想してね！</p><div class="coin" id="coinFace">🪙</div><div class="actions" id="coinButtons"><button id="heads">オモテを予想</button><button id="tails">ウラを予想</button></div><div class="actions hide" id="orderButtons"><button id="first">先攻を選ぶ</button><button id="second">後攻を選ぶ</button></div></section><section class="hide" id="prep"><h2>🎒 対戦準備</h2><p id="prepInfo"></p><div class="actions" id="prepActions"></div><p class="muted">初期配置では手札のたねポケモンをタップしてバトル場→ベンチへ配置。配置後に「準備完了」を押してね。</p></section><section><h2 id="turn">対戦準備中</h2><div class="counts"><span id="mineCount"></span><span id="cpuCount"></span></div><p class="notice" id="status"></p><p id="energyStatus"></p><p class="retreathelp" id="supportStatus"></p><p class="info" id="orderInfo"></p><div class="actions"><button id="next">番を終える・CPU行動</button><button id="reset">新しい対戦</button></div></section><section><h2>🤖 CPUバトル場</h2><div class="enemy" id="enemy"></div><h2>CPUベンチ</h2><div class="bench" id="enemyBench"></div></section><section><h2>自分のバトル場</h2><div class="slot" id="active"></div><h2 style="margin-top:12px">ワザ</h2><div class="actions" id="attacks"></div><div class="actions"><button id="retreat">🏃 にげる</button></div><p class="retreathelp" id="retreatInfo"></p><div class="actions" id="retreatChoices"></div></section><section><h2>自分のベンチ</h2><p class="muted">ベンチをタップするとワザの必要エネルギーと不足数を確認できるよ。</p><div class="bench" id="bench"></div><div aria-live="polite" class="info" id="benchDetail">ベンチのポケモンを選んでね。</div></section><section><h2>手札</h2><p class="muted">🔎 ネストボール：たねポケモンをベンチへ。ハイパーボール：手札2枚をトラッシュしてポケモンを手札へ。🍬 テスト用ふしぎなアメ：対象のたねを選んで使用、進化先を選択。🪡 テスト用どくばり：選択したポケモンに装備（1匹1枚）。ワザのダメージを受けると攻撃側をどくにする。🧰 テスト用グッズ：2枚ドロー。🔄 テスト用いれかえ：エネルギー消費なしで交代。📘 テスト用サポート：3枚ドロー（1ターン1枚・先攻最初の番は不可）。既存カードの能力は仮データ。サーチカードは効果検証用。</p><div class="hand" id="hand"></div><p class="muted">対戦中：対象ポケモンを選んでからエネルギー・進化カード・ふしぎなアメをタップ。</p></section><section class="hide" id="candyPanel"><h2>🍬 ふしぎなアメ：進化先を選択</h2><p class="muted" id="candyInfo"></p><div class="actions" id="candyChoices"></div><button id="candyCancel">キャンセル</button></section><section class="hide" id="searchPanel"><h2 id="searchTitle">🔎 山札検索</h2><p class="muted" id="searchInfo"></p><div class="actions" id="searchActions"></div><div id="searchRows"></div></section><section><h2>🗑️ トラッシュを確認</h2><div class="actions"><button id="trashPlayer">自分のトラッシュ</button><button id="trashCpu">CPUのトラッシュ</button></div><p class="muted" id="trashCount"></p><div class="trashlist" id="trashList"></div><p class="info muted" id="trashDetail">カードをタップすると詳細を表示するよ。</p></section><section id="typeTestPanel"><h2>🧪 β2.7 相性テスト（開発者用）</h2><p class="muted">対戦中のバトルポケモンにだけ一時的なタイプ・弱点・抵抗力を適用。カード原本・保存デッキは変更しないよ。新しい対戦で解除されるよ。</p><div class="actions"><label>対象 <select id="typeTestSide"><option value="cpu">🤖 CPUバトル場</option><option value="player">👤 自分のバトル場</option></select></label></div><div class="actions"><label>タイプ <select id="typeTestType"></select></label><label>弱点 <select id="typeTestWeak"></select></label><label>抵抗力 <select id="typeTestResist"></select></label></div><div class="actions"><label>弱点倍率 <select id="typeTestMultiplier"><option value="2">×2</option><option value="0">なし</option></select></label><label>抵抗力軽減 <select id="typeTestReduction"><option value="30">−30</option><option value="20">−20</option><option value="0">なし</option></select></label></div><div class="actions"><button id="typeTestApply">🧪 対戦中に適用</button><button id="typeTestClear">↩️ 対戦中の上書きを解除</button></div><p class="info muted" id="typeTestInfo">対戦準備中</p><p class="muted">※テスト設定はCPUのワザ選択AIには反映しない。実際のダメージ・きぜつ処理には反映するよ。</p></section><section id="diagnosticPanel"><h2>🩺 β2.7 対戦診断</h2><div class="diagbar"><span aria-live="polite" class="diagpill" id="diagStatus" role="status">診断準備中</span><button id="diagCheck">🔍 今すぐ診断</button><button id="diagTests">🧪 自動テスト</button><button id="diagCopy">📋 診断ログをコピー</button></div><p class="muted">異常は対戦中の操作後に確認し、ここに記録するよ。対戦状態は自動で変更しない。検出できるのは定義済みの異常のみ。</p><details><summary>診断ログ・テスト結果を表示</summary><div class="diagdetails" id="diagDetails">まだ記録はないよ。</div></details></section><section><h2>選択中</h2><p id="selected">なし</p><h2>対戦ログ</h2><div class="log" id="log" role="status"></div></section></details></main><div id="realAttackModal" class="real-modal" role="dialog" aria-modal="true" aria-labelledby="realAttackModalTitle" hidden><div class="real-modal-backdrop" id="realAttackBackdrop"></div><div class="real-modal-panel"><h2 id="realAttackModalTitle">⚔️ ワザを選択</h2><p class="muted" id="realAttackModalHint"></p><div class="real-action-choices" id="realAttackModalChoices"></div><div class="actions"><button id="realAttackModalDismiss" type="button">閉じる</button></div></div></div><div id="realActionModal" class="real-modal" role="dialog" aria-modal="true" aria-labelledby="realActionTitle" hidden><div class="real-modal-backdrop" id="realActionBackdrop"></div><div class="real-modal-panel"><h2 id="realActionTitle">操作対象を選択</h2><p class="muted" id="realActionHint"></p><div id="realActionChoices" class="real-action-choices"></div><div class="actions"><button type="button" id="realActionDismiss">キャンセル</button></div></div></div><div id="realSupportModal" class="real-modal" role="dialog" aria-modal="true" aria-labelledby="realSupportModalTitle" hidden><div class="real-modal-backdrop" id="realSupportBackdrop"></div><div class="real-modal-panel"><h2 id="realSupportModalTitle">🌸 リーリエの決心</h2><p>自分の手札をすべて山札にもどして切る。その後、自分のサイドの残り枚数が6枚なら8枚、それ以外なら6枚、山札を引く。</p><p class="notice" id="realSupportModalHint"></p><div class="actions"><button type="button" id="realSupportConfirm">🌸 使用する</button><button type="button" id="realSupportDismiss">キャンセル</button></div></div></div><script>
+<details class="legacy-prototype"><summary>🧰 旧ピカチュウex仮カード対戦・診断（タップで開く）</summary><section><h2>⚔️ CPU対戦</h2><p class="muted">画面の移動だけでは対戦はリセットされないよ。「新しい対戦」を押すと保存済みの自分・CPUデッキを読み込み、診断基準も固定するよ。</p><button id="battleStart">🎮 保存済みデッキで新しい対戦</button><p class="muted" id="battleDeckInfo"></p></section><section id="setup"><h2>🪙 コイントス</h2><p id="coinMessage">オモテかウラを予想してね！</p><div class="coin" id="coinFace">🪙</div><div class="actions" id="coinButtons"><button id="heads">オモテを予想</button><button id="tails">ウラを予想</button></div><div class="actions hide" id="orderButtons"><button id="first">先攻を選ぶ</button><button id="second">後攻を選ぶ</button></div></section><section class="hide" id="prep"><h2>🎒 対戦準備</h2><p id="prepInfo"></p><div class="actions" id="prepActions"></div><p class="muted">初期配置では手札のたねポケモンをタップしてバトル場→ベンチへ配置。配置後に「準備完了」を押してね。</p></section><section><h2 id="turn">対戦準備中</h2><div class="counts"><span id="mineCount"></span><span id="cpuCount"></span></div><p class="notice" id="status"></p><p id="energyStatus"></p><p class="retreathelp" id="supportStatus"></p><p class="info" id="orderInfo"></p><div class="actions"><button id="next">番を終える・CPU行動</button><button id="reset">新しい対戦</button></div></section><section><h2>🤖 CPUバトル場</h2><div class="enemy" id="enemy"></div><h2>CPUベンチ</h2><div class="bench" id="enemyBench"></div></section><section><h2>自分のバトル場</h2><div class="slot" id="active"></div><h2 style="margin-top:12px">ワザ</h2><div class="actions" id="attacks"></div><div class="actions"><button id="retreat">🏃 にげる</button></div><p class="retreathelp" id="retreatInfo"></p><div class="actions" id="retreatChoices"></div></section><section><h2>自分のベンチ</h2><p class="muted">ベンチをタップするとワザの必要エネルギーと不足数を確認できるよ。</p><div class="bench" id="bench"></div><div aria-live="polite" class="info" id="benchDetail">ベンチのポケモンを選んでね。</div></section><section><h2>手札</h2><p class="muted">🔎 ネストボール：たねポケモンをベンチへ。ハイパーボール：手札2枚をトラッシュしてポケモンを手札へ。🍬 テスト用ふしぎなアメ：対象のたねを選んで使用、進化先を選択。🪡 テスト用どくばり：選択したポケモンに装備（1匹1枚）。ワザのダメージを受けると攻撃側をどくにする。🧰 テスト用グッズ：2枚ドロー。🔄 テスト用いれかえ：エネルギー消費なしで交代。📘 テスト用サポート：3枚ドロー（1ターン1枚・先攻最初の番は不可）。既存カードの能力は仮データ。サーチカードは効果検証用。</p><div class="hand" id="hand"></div><p class="muted">対戦中：対象ポケモンを選んでからエネルギー・進化カード・ふしぎなアメをタップ。</p></section><section class="hide" id="candyPanel"><h2>🍬 ふしぎなアメ：進化先を選択</h2><p class="muted" id="candyInfo"></p><div class="actions" id="candyChoices"></div><button id="candyCancel">キャンセル</button></section><section class="hide" id="searchPanel"><h2 id="searchTitle">🔎 山札検索</h2><p class="muted" id="searchInfo"></p><div class="actions" id="searchActions"></div><div id="searchRows"></div></section><section><h2>🗑️ トラッシュを確認</h2><div class="actions"><button id="trashPlayer">自分のトラッシュ</button><button id="trashCpu">CPUのトラッシュ</button></div><p class="muted" id="trashCount"></p><div class="trashlist" id="trashList"></div><p class="info muted" id="trashDetail">カードをタップすると詳細を表示するよ。</p></section><section id="typeTestPanel"><h2>🧪 β2.7 相性テスト（開発者用）</h2><p class="muted">対戦中のバトルポケモンにだけ一時的なタイプ・弱点・抵抗力を適用。カード原本・保存デッキは変更しないよ。新しい対戦で解除されるよ。</p><div class="actions"><label>対象 <select id="typeTestSide"><option value="cpu">🤖 CPUバトル場</option><option value="player">👤 自分のバトル場</option></select></label></div><div class="actions"><label>タイプ <select id="typeTestType"></select></label><label>弱点 <select id="typeTestWeak"></select></label><label>抵抗力 <select id="typeTestResist"></select></label></div><div class="actions"><label>弱点倍率 <select id="typeTestMultiplier"><option value="2">×2</option><option value="0">なし</option></select></label><label>抵抗力軽減 <select id="typeTestReduction"><option value="30">−30</option><option value="20">−20</option><option value="0">なし</option></select></label></div><div class="actions"><button id="typeTestApply">🧪 対戦中に適用</button><button id="typeTestClear">↩️ 対戦中の上書きを解除</button></div><p class="info muted" id="typeTestInfo">対戦準備中</p><p class="muted">※テスト設定はCPUのワザ選択AIには反映しない。実際のダメージ・きぜつ処理には反映するよ。</p></section><section id="diagnosticPanel"><h2>🩺 β2.7 対戦診断</h2><div class="diagbar"><span aria-live="polite" class="diagpill" id="diagStatus" role="status">診断準備中</span><button id="diagCheck">🔍 今すぐ診断</button><button id="diagTests">🧪 自動テスト</button><button id="diagCopy">📋 診断ログをコピー</button></div><p class="muted">異常は対戦中の操作後に確認し、ここに記録するよ。対戦状態は自動で変更しない。検出できるのは定義済みの異常のみ。</p><details><summary>診断ログ・テスト結果を表示</summary><div class="diagdetails" id="diagDetails">まだ記録はないよ。</div></details></section><section><h2>選択中</h2><p id="selected">なし</p><h2>対戦ログ</h2><div class="log" id="log" role="status"></div></section></details></main><div id="realAttackModal" class="real-modal" role="dialog" aria-modal="true" aria-labelledby="realAttackModalTitle" hidden><div class="real-modal-backdrop" id="realAttackBackdrop"></div><div class="real-modal-panel"><h2 id="realAttackModalTitle">⚔️ ワザを選択</h2><p class="muted" id="realAttackModalHint"></p><div class="real-action-choices" id="realAttackModalChoices"></div><div class="actions"><button id="realAttackModalDismiss" type="button">閉じる</button></div></div></div><div id="realActionModal" class="real-modal" role="dialog" aria-modal="true" aria-labelledby="realActionTitle" hidden><div class="real-modal-backdrop" id="realActionBackdrop"></div><div class="real-modal-panel"><h2 id="realActionTitle">操作対象を選択</h2><p class="muted" id="realActionHint"></p><div id="realActionChoices" class="real-action-choices"></div><div class="actions"><button type="button" id="realActionDismiss">キャンセル</button></div></div></div><div id="realPromotionModal" class="real-modal" role="dialog" aria-modal="true" aria-labelledby="realPromotionTitle" hidden><div class="real-modal-backdrop"></div><div class="real-modal-panel"><h2 id="realPromotionTitle">🪑 次のバトルポケモンを選択</h2><p class="notice">自分のポケモンがきぜつしたよ。ベンチから1匹選んでね。選択するまで番は進められないよ。</p><div id="realPromotionChoices" class="real-action-choices"></div></div></div><div id="realSupportModal" class="real-modal" role="dialog" aria-modal="true" aria-labelledby="realSupportModalTitle" hidden><div class="real-modal-backdrop" id="realSupportBackdrop"></div><div class="real-modal-panel"><h2 id="realSupportModalTitle">🌸 リーリエの決心</h2><p>自分の手札をすべて山札にもどして切る。その後、自分のサイドの残り枚数が6枚なら8枚、それ以外なら6枚、山札を引く。</p><p class="notice" id="realSupportModalHint"></p><div class="actions"><button type="button" id="realSupportConfirm">🌸 使用する</button><button type="button" id="realSupportDismiss">キャンセル</button></div></div></div><script>
 'use strict';
 // 共通コイントス：将来のワザ・特性でも利用可能
 function flipCoin(){return Math.random()<0.5?'heads':'tails'}
@@ -643,7 +643,7 @@ function renderRealDeck(){
 renderRealDeck();
 // β2.9: 実カードの初手配布検証。既存の仮カード対戦状態は一切変更しない。
 
-// β2.9.22.1: 採用ポケモン13種類の基本情報・ワザ・コスト・にげるを照合。
+// β2.9.23: 採用ポケモン13種類の基本情報・ワザ・コスト・にげるを照合。
 // 公式のテキストに表示されないエネルギーアイコンはLimitless収録番号一致データと照合。
 // ワザの「使用可能」と「効果実装済み」は別。攻撃実行は引き続き無効。
 const realAttackRegistry=new Map([
@@ -673,7 +673,7 @@ function realCardAudit(){
  const all=[...realDeckEntries,...cpuRealDeckEntries].filter(x=>x.category==='pokemon');
  return all.map(x=>({card:x,definition:realCardDefinition(x)}));
 }
-// β2.9.22.1: タイプ別エネルギーの充足判定。色指定を先に消費し、残りを無色枠に使う。
+// β2.9.23: タイプ別エネルギーの充足判定。色指定を先に消費し、残りを無色枠に使う。
 // cost: ['psychic','psychic','colorless'] など。カードに書かれたアイコンを確認するまでは null。
 const REAL_ENERGY_TYPES=new Set(['grass','fire','water','lightning','psychic','fighting','darkness','metal','fairy','dragon','colorless']);
 const REAL_ENERGY_LABELS={grass:'草',fire:'炎',water:'水',lightning:'雷',psychic:'超',fighting:'闘',darkness:'悪',metal:'鋼',fairy:'妖',dragon:'竜',colorless:'無色'};
@@ -705,7 +705,7 @@ function realAttackReadiness(card,attached,handCount){
  // 特性はワザのエネルギー充足とは別の判定。現段階では攻撃を実行しない。
  return {known:true,ready:false,costReady:check.ready,reason:check.reason+(check.ready?'（攻撃実行は次バージョン以降）':'')};
 }
-// β2.9.22.1: ワザごとのデータ品質とマイルストーンを明示する。効果未実装のワザを攻撃可能扱いしない。
+// β2.9.23: ワザごとのデータ品質とマイルストーンを明示する。効果未実装のワザを攻撃可能扱いしない。
 // 「基本攻撃候補」は次版で実装する候補であり、現在の実行許可ではない。
 function realAttackClassification(attack){
  if(!attack||typeof attack.name!=='string'||!attack.name.trim()||
@@ -745,7 +745,7 @@ function renderRealCardAudit(){
   root.append(details);
  }
 }
-// β2.9.22.1: 基本ダメージ限定の検証モード。効果を再現したと誤認させない。
+// β2.9.23: 基本ダメージ限定の検証モード。効果を再現したと誤認させない。
 // 攻撃対象変更・コイントスによるダメージ変動は、安全のため対象外。
 function realBaseOnlyEligible(attack){
  if(!attack||!Number.isInteger(attack.baseDamage)||attack.baseDamage<=0||attack.baseDamage%10!==0)return false;
@@ -757,7 +757,7 @@ function realDamageMode(attack){
  if(cl.status==='basic')return 'normal';
  return cl.status==='deferred'&&realBaseOnlyEligible(attack)?'baseOnly':null;
 }
-// β2.9.22.1: 基本攻撃・きぜつ・サイド取得。特殊効果は②へ保留。
+// β2.9.23: 基本攻撃・きぜつ・サイド取得。特殊効果は②へ保留。
 function realBasicAttackAllowed(s,index){
  if(!s||!s.active||!s.cpuReal?.active||!s.placementDone||s.turnSide!=='player'||s.deckOut||s.gameOver)return false;
  if(s.attackedThisTurn)return false;
@@ -859,7 +859,7 @@ function drawRealOpening(){
  }
  const prizes=deck.splice(-6);
  if(hand.length!==7||prizes.length!==6||deck.length!==47)throw Error('実カードの初期枚数が不正');
- return {cpuReal:makeCpuRealOpening(),hand,prizes,deck,mulligans,active:null,bench:[],placementHistory:[],placementDone:false,firstSide:null,turnSide:null,playerTurns:0,cpuTurns:0,turnLog:[],deckOut:false,energyAttachedThisTurn:false,selectedEnergyIndex:null,selectedEvolutionIndex:null,retreatedThisTurn:false,retreatSelecting:false,supportUsedThisTurn:false,selectedSupportIndex:null,gameOver:null,attackedThisTurn:false,playerDamage:0,cpuDamage:0,trash:[],activeEnergy:[],benchEnergy:[],activeEnteredTurn:0,benchEnteredTurns:[],activeStack:[],benchStacks:[],damage:0,benchDamage:[]};
+ return {cpuReal:makeCpuRealOpening(),hand,prizes,deck,mulligans,active:null,bench:[],placementHistory:[],placementDone:false,firstSide:null,turnSide:null,playerTurns:0,cpuTurns:0,turnLog:[],deckOut:false,energyAttachedThisTurn:false,selectedEnergyIndex:null,selectedEvolutionIndex:null,retreatedThisTurn:false,retreatSelecting:false,supportUsedThisTurn:false,selectedSupportIndex:null,gameOver:null,pendingPromotion:false,attackedThisTurn:false,playerDamage:0,cpuDamage:0,trash:[],activeEnergy:[],benchEnergy:[],activeEnteredTurn:0,benchEnteredTurns:[],activeStack:[],benchStacks:[],damage:0,benchDamage:[]};
 }
 function realPlacementCount(s){return s.hand.length+s.prizes.length+s.deck.length+(s.active?1:0)+s.bench.length+(s.activeStack||[]).length+(s.benchStacks||[]).reduce((n,a)=>n+a.length,0)+(s.activeEnergy||[]).length+(s.benchEnergy||[]).reduce((n,a)=>n+a.length,0)+(s.trash||[]).length}
 function placeRealBasic(i){
@@ -930,14 +930,14 @@ function renderRealOpening(){
  hand.replaceChildren();list.replaceChildren();active.replaceChildren();bench.replaceChildren();
  document.getElementById('realPlacementUndo').disabled=!s||s.placementDone||!s.placementHistory.length;
  document.getElementById('realPlacementFinish').disabled=!s||s.placementDone||!s.active;
- if(!s){document.getElementById('realOpeningCounts').textContent='';renderCpuReal();renderRealTurn();renderRealAttackPrep();return}
+ if(!s){document.getElementById('realOpeningCounts').textContent='';renderCpuReal();renderRealTurn();renderRealAttackPrep();realRenderPromotion();return}
  document.getElementById('realOpeningStatus').textContent=s.placementDone?'✅ 初期配置完了！ 自分の番には手札のたねポケモンをベンチに出せるよ。':s.active?'🌱 ベンチへ追加するか、配置完了を押してね。':'🌱 手札からバトル場に出すたねポケモンを選んでね。';
  document.getElementById('realOpeningCounts').textContent='手札 '+s.hand.length+'枚 / バトル場 '+(s.active?1:0)+'枚 / ベンチ '+s.bench.length+'枚 / 進化元カード '+(s.activeStack.length+s.benchStacks.reduce((n,a)=>n+a.length,0))+'枚 / 付属エネルギー '+(s.activeEnergy.length+s.benchEnergy.reduce((n,a)=>n+a.length,0))+'枚 / トラッシュ '+s.trash.length+'枚 / サイド '+s.prizes.length+'枚（非公開） / 山札 '+s.deck.length+'枚 / 合計 '+realPlacementCount(s)+'枚 / マリガン '+s.mulligans+'回';
  s.hand.forEach((c,i)=>{const b=document.createElement('button');b.className='card';b.type='button';const energyOK=canSelectRealEnergy(s,c),benchOK=canPlayRealBasicToBench(s,c),evolutionOK=canSelectRealEvolution(s,c),supportOK=canSelectRealSupport(s,c);b.textContent=c.name+(isRealBasic(c.name)?' 🌱':'')+(s.selectedEnergyIndex===i||s.selectedEvolutionIndex===i||s.selectedSupportIndex===i?' ✅ 選択中':'')+' / '+({pokemon:'ポケモン',goods:'グッズ',support:'サポート',stadium:'スタジアム',energy:'エネルギー'}[c.category]);b.disabled=s.placementDone?!(energyOK||benchOK||evolutionOK||supportOK):!isRealBasic(c.name)||!!s.active&&s.bench.length>=5;b.title=s.placementDone?(benchOK?'タップしてベンチに出す':energyOK?'タップして手張り先を選択':evolutionOK?'進化先を選択':supportOK?'リーリエの決心を選択':'今は選択できないよ'):(isRealBasic(c.name)?'タップして配置':'初期配置できるのはたねポケモンだけ');b.onclick=()=>s.placementDone?(benchOK?playRealBasicToBench(i):energyOK?selectRealEnergy(i):evolutionOK?selectRealEvolution(i):selectRealSupport(i)):placeRealBasic(i);hand.append(b)});
  const show=(root,c,energies,location,index)=>{const b=document.createElement('button');b.type='button';b.className='card';b.textContent=c.name+' / 超エネルギー '+energies.length+'枚 / 進化元 '+(location==='active'?s.activeStack.length:s.benchStacks[index].length)+'枚';const retreatOK=location==='bench'&&canFinishRealRetreat(s,index);const enabled=retreatOK||canAttachRealEnergy(s)||canEvolveRealAt(s,location,index);b.disabled=location==='active'?false:!enabled;b.title=retreatOK?'にげる：このポケモンをバトル場へ':canEvolveRealAt(s,location,index)?'選択中のポケモンに進化':canAttachRealEnergy(s)?'選択した基本超エネルギーを付ける':'エネルギーまたは進化ポケモンを選んでね';b.onclick=()=>location==='active'?openRealAttackModal():retreatOK?finishRealRetreat(index):canEvolveRealAt(s,location,index)?evolveRealAt(location,index):attachRealEnergy(location,index);root.append(b)};
- if(s.active)show(active,s.active,s.activeEnergy,'active',0);else active.textContent='未配置';
+ if(s.active)show(active,s.active,s.activeEnergy,'active',0);else active.textContent=s.pendingPromotion?'🪑 交代先を選択中':'未配置';
  s.bench.forEach((c,i)=>show(bench,c,s.benchEnergy[i],'bench',i));if(!s.bench.length)bench.textContent='まだいないよ';
- renderCpuReal();renderRealTurn();renderRealAttackPrep();
+ renderCpuReal();renderRealTurn();renderRealAttackPrep();realRenderPromotion();
  const grouped=new Map();s.deck.forEach(c=>grouped.set(c.name,(grouped.get(c.name)||0)+1));
  [...grouped].sort((a,b)=>a[0].localeCompare(b[0],'ja')).forEach(([name,n])=>{const p=document.createElement('div');p.textContent=name+' ×'+n;list.append(p)});
 }
@@ -948,7 +948,7 @@ document.getElementById('realOpeningStart').onclick=()=>{try{closeRealActionModa
 // β2.9.5: 初期配置後、プレイヤーの番に手札のたねポケモンをベンチへ出す。
 // 初期配置時の取り消し履歴とは分離し、CPUの番・開始前・山札切れ・満員時は不可。
 function canPlayRealBasicToBench(s,c){return !!s&&s.placementDone&&s.turnSide==='player'&&!s.deckOut&&!s.attackedThisTurn&&!s.gameOver&&s.bench.length<5&&!!c&&c.category==='pokemon'&&isRealBasic(c.name)}
-// β2.9.22.1: ベンチの5つの管理配列を同じ操作で追加し、ズレを防止する。
+// β2.9.23: ベンチの5つの管理配列を同じ操作で追加し、ズレを防止する。
 function realAppendBasicToBench(s,i){
  const c=s.hand.splice(i,1)[0];
  s.bench.push(c);
@@ -1129,13 +1129,13 @@ function runRealRegression(){
  test('サポート：CPUの番は禁止',()=>{const s=mk();s.turnSide='cpu';return !canSelectRealSupport(s,s.hand[0])});
  test('サポート：同じ番の2枚目は禁止',()=>{const s=mk();s.supportUsedThisTurn=true;return !canSelectRealSupport(s,s.hand[0])});
  test('サポート：山札不足時は残りだけ引く',()=>{const s=mk();const extra=s.deck.splice(0,s.deck.length-3);s.trash.push(...extra);return useRealLillie(s,0)&&s.hand.length===3&&realPlacementCount(s)===60});
- // β2.9.22.1: 実際のプレイヤーベンチ追加処理を通す回帰テスト。
+ // β2.9.23: 実際のプレイヤーベンチ追加処理を通す回帰テスト。
  const benchFixture=()=>({hand:[{name:'シュシュプ',category:'pokemon'},{name:'ピッピ',category:'pokemon'},{name:'リーリエのピッピex',category:'pokemon'}],bench:[],benchDamage:[],benchEnergy:[],benchStacks:[],benchEnteredTurns:[],playerTurns:8});
  const benchAligned=s=>s.bench.length===s.benchDamage.length&&s.bench.length===s.benchEnergy.length&&s.bench.length===s.benchStacks.length&&s.bench.length===s.benchEnteredTurns.length;
  test('ベンチ配置：1体目のダメージ管理を初期化',()=>{const s=benchFixture();realAppendBasicToBench(s,0);return benchAligned(s)&&s.bench.length===1&&s.benchDamage[0]===0&&s.benchEnteredTurns[0]===8});
  test('ベンチ配置：3体連続でも配列が一致',()=>{const s=benchFixture();for(let i=0;i<3;i++)realAppendBasicToBench(s,0);return benchAligned(s)&&s.bench.length===3&&s.benchDamage.every(n=>n===0)&&s.benchEnergy.every(Array.isArray)&&s.benchStacks.every(Array.isArray)});
  test('ベンチ配置：カード順序と手札枚数を保持',()=>{const s=benchFixture();realAppendBasicToBench(s,0);realAppendBasicToBench(s,1);return benchAligned(s)&&s.bench[0].name==='シュシュプ'&&s.bench[1].name==='リーリエのピッピex'&&s.hand.length===1&&s.hand[0].name==='ピッピ'});
- // β2.9.22.1: 攻撃後の全行動禁止を判定関数の実処理で検証する。
+ // β2.9.23: 攻撃後の全行動禁止を判定関数の実処理で検証する。
  const postAttackFixture=()=>({placementDone:true,turnSide:'player',deckOut:false,gameOver:null,attackedThisTurn:true,firstSide:'cpu',playerTurns:3,bench:[],active:{name:'ピッピ',set:'M3',number:'029/080',category:'pokemon'},activeEnergy:[{name:'基本超エネルギー',category:'energy'}],energyAttachedThisTurn:false,retreatedThisTurn:false,supportUsedThisTurn:false,selectedEvolutionIndex:null,selectedEnergyIndex:null,selectedSupportIndex:null,hand:[{name:'リーリエの決心',category:'support'},{name:'基本超エネルギー',category:'energy'},{name:'シュシュプ',category:'pokemon'},{name:'メガピクシーex',category:'pokemon'}]});
  test('攻撃後：リーリエの決心を選べない',()=>{const s=postAttackFixture();return !canSelectRealSupport(s,s.hand[0])});
  test('攻撃後：サポートを直接使用しても拒否',()=>{const s=postAttackFixture();return useRealLillie(s,0)===false&&s.hand.length===4&&!s.supportUsedThisTurn});
@@ -1217,7 +1217,7 @@ function runRealRegression(){
  test('攻撃：固定ダメージの10単位',()=>realAttackCatalog().filter(x=>x.classification.status==='basic').every(x=>x.attack.baseDamage%10===0));
 
 
- // β2.9.22.1 CPU攻撃の独立回帰テスト：対戦実体を変更しない。
+ // β2.9.23 CPU攻撃の独立回帰テスト：対戦実体を変更しない。
  const cpuAttackFixture=(activeName='ゴビット',playerName='ピッピ')=>{
   const s=drawRealOpening();s.placementDone=true;s.firstSide='player';s.turnSide='cpu';s.cpuReal.turns=2;s.cpuReal.active={name:activeName,category:'pokemon',set:activeName==='ゴビット'?'M6':'M6',number:activeName==='ゴビット'?'032/076':'033/076'};
   s.active={name:playerName,category:'pokemon',set:'M3',number:'029/080'};
@@ -1232,15 +1232,20 @@ function runRealRegression(){
  test('CPU攻撃：自分のポケモンのサイド枚数は登録値を使用',()=>realCardDefinition({name:'メガピクシーex',category:'pokemon',set:'M3',number:'030/080'})?.prizes===3);
  test('CPU攻撃：自分のベンチ交代は5配列を同時に移す',()=>{
   const s=cpuAttackFixture();s.bench=[{name:'シュシュプ',category:'pokemon',set:'M3',number:'034/080'}];s.benchEnergy=[[{name:'基本超エネルギー'}]];s.benchStacks=[[]];s.benchEnteredTurns=[1];s.benchDamage=[20];s.activeStack=[];s.activeEnergy=[];s.trash=[];s.prizes=[{name:'x'}];s.cpuReal.prizes=[{name:'y'},{name:'y2'}];s.cpuReal.hand=[];s.turnLog=[];
-  realPlayerKnockout(s);return s.active?.name==='シュシュプ'&&s.damage===20&&s.bench.length===0&&s.benchEnergy.length===0&&s.benchStacks.length===0&&s.benchDamage.length===0&&s.benchEnteredTurns.length===0&&s.cpuReal.hand.length===1;
+  realPlayerKnockout(s);if(!s.pendingPromotion||s.active!==null)return false;realChoosePromotion(s,0);return s.active?.name==='シュシュプ'&&s.damage===20&&s.bench.length===0&&s.benchEnergy.length===0&&s.benchStacks.length===0&&s.benchDamage.length===0&&s.benchEnteredTurns.length===0&&s.cpuReal.hand.length===1;
  });
+ test('きぜつ交代：候補が複数なら自動選出しない',()=>{const s=cpuAttackFixture();s.bench=[{name:'ピッピ'},{name:'シュシュプ'}];s.benchEnergy=[[],[]];s.benchStacks=[[],[]];s.benchEnteredTurns=[1,2];s.benchDamage=[0,20];s.trash=[];s.activeStack=[];s.activeEnergy=[];s.cpuReal.prizes=[{name:'a'},{name:'b'}];s.cpuReal.hand=[];s.turnLog=[];realPlayerKnockout(s);return s.pendingPromotion&&s.active===null&&s.bench.length===2});
+ test('きぜつ交代：2番目を選べる・5配列の対応維持',()=>{const s=cpuAttackFixture();s.bench=[{name:'ピッピ'},{name:'シュシュプ'}];s.benchEnergy=[[{name:'e1'}],[{name:'e2'},{name:'e3'}]];s.benchStacks=[[],[{name:'evo'}]];s.benchEnteredTurns=[1,2];s.benchDamage=[0,20];s.trash=[];s.activeStack=[];s.activeEnergy=[];s.cpuReal.prizes=[{name:'a'},{name:'b'}];s.cpuReal.hand=[];s.turnLog=[];realPlayerKnockout(s);return realChoosePromotion(s,1)&&s.active.name==='シュシュプ'&&s.activeEnergy.length===2&&s.activeStack.length===1&&s.damage===20&&s.activeEnteredTurn===2&&s.bench.length===1&&s.bench[0].name==='ピッピ'&&s.benchDamage[0]===0&&s.benchEnergy[0].length===1&&s.benchStacks.length===1&&s.benchEnteredTurns.length===1});
+ test('きぜつ交代：選択前は番を進めない',()=>{const s=cpuAttackFixture();s.pendingPromotion=true;return !!s.pendingPromotion});
+ test('きぜつ交代：範囲外の選択を拒否',()=>{const s=cpuAttackFixture();s.pendingPromotion=true;s.bench=[{name:'ピッピ'}];return !realChoosePromotion(s,1)&&!realChoosePromotion(s,-1)&&s.pendingPromotion});
+ test('きぜつ交代：勝敗確定時は選択不要',()=>{const s=cpuAttackFixture();s.bench=[{name:'ピッピ'}];s.trash=[];s.activeStack=[];s.activeEnergy=[];s.cpuReal.prizes=[{name:'a'}];s.cpuReal.hand=[];s.turnLog=[];realPlayerKnockout(s);return s.gameOver==='cpu'&&!s.pendingPromotion&&s.active===null});
  test('CPU攻撃：自分のベンチ0なら敗北判定',()=>{const s=cpuAttackFixture();s.bench=[];s.activeStack=[];s.activeEnergy=[];s.trash=[];s.cpuReal.prizes=[{name:'y'}];s.cpuReal.hand=[];s.turnLog=[];realPlayerKnockout(s);return s.gameOver==='cpu'&&s.deckOut});
  test('CPU攻撃：CPUサイド0枚で勝利判定',()=>{const s=cpuAttackFixture();s.bench=[{name:'シュシュプ'}];s.activeStack=[];s.activeEnergy=[];s.trash=[];s.cpuReal.prizes=[{name:'y'}];s.cpuReal.hand=[];s.turnLog=[];realPlayerKnockout(s);return s.gameOver==='cpu'&&s.cpuReal.prizes.length===0});
 
  return results;
 }
 
-// β2.9.22.1: 対戦状態を変更しない追跡機能（ページ内メモリのみ）
+// β2.9.23: 対戦状態を変更しない追跡機能（ページ内メモリのみ）
 const realTraceHistory=[];
 let realTraceSerial=0;
 function realArrayLengths(s){
@@ -1283,7 +1288,7 @@ document.getElementById('realAttackBackdrop').onclick=closeRealAttackModal;
 document.getElementById('realAttackModalDismiss').onclick=closeRealAttackModal;
 document.getElementById('realTraceCheck').onclick=()=>realTraceRecord('手動詳細診断');
 document.getElementById('realTraceClear').onclick=()=>{realTraceHistory.length=0;realTraceRender()};
-document.getElementById('realTraceCopy').onclick=async()=>{const txt='ちゃっぴーTCG β2.9.22.1 追跡ログ\n'+document.getElementById('realTraceOutput').textContent;try{await navigator.clipboard.writeText(txt);alert('追跡ログをコピーしたよ')}catch(e){const t=document.createElement('textarea');t.value=txt;document.body.append(t);t.select();document.execCommand('copy');t.remove();alert('追跡ログのコピーを試みたよ')}};
+document.getElementById('realTraceCopy').onclick=async()=>{const txt='ちゃっぴーTCG β2.9.23 追跡ログ\n'+document.getElementById('realTraceOutput').textContent;try{await navigator.clipboard.writeText(txt);alert('追跡ログをコピーしたよ')}catch(e){const t=document.createElement('textarea');t.value=txt;document.body.append(t);t.select();document.execCommand('copy');t.remove();alert('追跡ログのコピーを試みたよ')}};
 // 対戦画面の実カード操作を捕捉し、処理完了後の状態を記録する。
 document.getElementById('realOpeningPanel').addEventListener('click',e=>{
  const b=e.target.closest('button');if(!b||b.id.startsWith('realTrace')||b.id==='realDiagnostics'||b.id==='realRegression')return;
@@ -1293,7 +1298,7 @@ document.getElementById('realOpeningPanel').addEventListener('click',e=>{
 
 document.getElementById('realDiagnostics').onclick=()=>{const issues=inspectRealState(realOpeningState);document.getElementById('realDiagnosticResult').textContent=issues.length?'⚠️ '+issues.join(' / '):'✅ 実カード状態：定義済みの異常なし（'+realPlacementCount(realOpeningState)+'/60枚）'};
 document.getElementById('realRegression').onclick=()=>{const r=runRealRegression();document.getElementById('realDiagnosticResult').textContent='🧪 実カード自動テスト：'+r.filter(x=>x.pass).length+'/'+r.length+' PASS\n'+r.map(x=>(x.pass?'PASS ':'FAIL ')+x.name+(x.error?'：'+x.error:'')).join('\n')};
-// β2.9.22.1: CPU実カードの最小合法行動。基本ダメージ攻撃のみ実装。特性・トレーナーズ・特殊エネルギーは未実装。
+// β2.9.23: CPU実カードの最小合法行動。基本ダメージ攻撃のみ実装。特性・トレーナーズ・特殊エネルギーは未実装。
 // たね判定は検証済みの明示リストのみを使用し、未確認カードを勝手に場に出さない。
 function cpuRealDeploy(c,logs){
  let deployed=0;
@@ -1335,7 +1340,7 @@ function cpuRealAttach(c,logs){
  return true;
 }
 
-// β2.9.22.1: CPUも同じエネルギー・基本ダメージ検証ルールで攻撃する。
+// β2.9.23: CPUも同じエネルギー・基本ダメージ検証ルールで攻撃する。
 function realCpuAttackChoices(s){
  const c=s?.cpuReal;
  if(!s||!c?.active||!s.active||s.turnSide!=='cpu'||s.deckOut||s.gameOver||s.firstSide==='cpu'&&c.turns===1)return [];
@@ -1346,15 +1351,38 @@ function realCpuTakePrizes(s,count){
  for(let i=0;i<n;i++)c.hand.push(c.prizes.pop());
  return n;
 }
+// β2.9.23: 自分のきぜつ後はプレイヤーがベンチを選ぶ。CPU勝利時は選択不要。
+function realChoosePromotion(s,index){
+ if(!s?.pendingPromotion||s.gameOver||!Number.isInteger(index)||index<0||index>=s.bench.length)return false;
+ const next=s.bench.splice(index,1)[0];
+ s.active=next;
+ s.activeEnergy=s.benchEnergy.splice(index,1)[0];
+ s.activeStack=s.benchStacks.splice(index,1)[0];
+ s.activeEnteredTurn=s.benchEnteredTurns.splice(index,1)[0];
+ s.damage=s.benchDamage.splice(index,1)[0]||0;
+ s.pendingPromotion=false;
+ s.turnLog.unshift('👤 きぜつ後の交代：ベンチから'+next.name+'を選択');
+ return true;
+}
+function realRenderPromotion(){
+ const s=realOpeningState,modal=document.getElementById('realPromotionModal'),choices=document.getElementById('realPromotionChoices');
+ if(!modal||!choices)return;
+ modal.hidden=!s?.pendingPromotion;
+ choices.replaceChildren();
+ if(!s?.pendingPromotion)return;
+ s.bench.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.textContent=c.name+' / エネルギー '+s.benchEnergy[i].length+'枚 / ダメージ '+(s.benchDamage[i]||0);b.onclick=()=>{
+  if(realChoosePromotion(s,i)){realTraceRecord('きぜつ後のベンチ選択：'+c.name);renderRealOpening();}
+ };choices.append(b)});
+}
 function realPlayerKnockout(s){
  const def=realCardDefinition(s.active),name=s.active.name;
  s.trash.push(s.active,...s.activeStack,...s.activeEnergy);
  s.active=null;s.activeStack=[];s.activeEnergy=[];s.damage=0;
  const count=realCpuTakePrizes(s,def?.prizes||1);
  s.turnLog.unshift('🤖 '+name+'がきぜつ！ CPUがサイド'+count+'枚取得（CPU残り'+s.cpuReal.prizes.length+'枚）');
- if(!s.cpuReal.prizes.length||!s.bench.length){s.gameOver='cpu';s.deckOut=true;return;}
- s.active=s.bench.shift();s.activeEnergy=s.benchEnergy.shift();s.activeStack=s.benchStacks.shift();s.activeEnteredTurn=s.benchEnteredTurns.shift();s.damage=s.benchDamage.shift()||0;
- s.turnLog.unshift('👤 検証用：自分のベンチから'+s.active.name+'を自動選出（選択UIは今後実装）');
+ if(!s.cpuReal.prizes.length||!s.bench.length){s.gameOver='cpu';s.deckOut=true;s.pendingPromotion=false;return;}
+ s.pendingPromotion=true;
+ s.turnLog.unshift('🪑 次のバトルポケモンをベンチから選択してね');
 }
 function realCpuAttack(s){
  const choices=realCpuAttackChoices(s);if(!choices.length)return false;
@@ -1383,7 +1411,7 @@ function startRealTurns(first){
  beginRealTurn();
 }
 function beginRealTurn(){
- const s=realOpeningState;if(!s||!s.turnSide||s.deckOut)return;
+ const s=realOpeningState;if(!s||!s.turnSide||s.deckOut||s.pendingPromotion)return;
  if(s.turnSide==='player'){
   s.playerTurns++;s.energyAttachedThisTurn=false;s.supportUsedThisTurn=false;s.retreatedThisTurn=false;s.retreatSelecting=false;s.selectedEnergyIndex=null;s.selectedEvolutionIndex=null;s.selectedSupportIndex=null;
   if(s.firstSide==='player'&&s.playerTurns===1){s.turnLog.unshift('👤 自分の1番目：先攻最初の番なのでドローなし');}
@@ -1399,7 +1427,7 @@ function beginRealTurn(){
  s.turnLog=s.turnLog.slice(0,12);renderRealOpening();
 }
 function advanceRealTurn(){
- const s=realOpeningState;if(!s||!s.firstSide||s.deckOut||s.gameOver)return;
+ const s=realOpeningState;if(!s||!s.firstSide||s.deckOut||s.gameOver||s.pendingPromotion)return;
  s.attackedThisTurn=false;
  s.selectedEnergyIndex=null;s.selectedEvolutionIndex=null;s.selectedSupportIndex=null;s.retreatSelecting=false;s.turnSide=s.turnSide==='player'?'cpu':'player';beginRealTurn();
 }
@@ -1407,9 +1435,9 @@ function renderRealTurn(){
  const s=realOpeningState,first=document.getElementById('realFirst'),second=document.getElementById('realSecond'),next=document.getElementById('realTurnAdvance');
  const canStart=!!s&&s.placementDone&&!s.firstSide;
  first.disabled=second.disabled=!canStart;
- next.disabled=!s||!s.firstSide||s.deckOut||!!s.gameOver;
+ next.disabled=!s||!s.firstSide||s.deckOut||!!s.gameOver||!!s.pendingPromotion;
  const status=document.getElementById('realTurnStatus');
- status.textContent=!s||!s.placementDone?'初期配置を完了してね。':!s.firstSide?'👤 自分の先攻・後攻を選んでね。':s.gameOver==='cpu'?'🏆 CPUの勝利・自分の敗北（サイド取得または場のポケモンなし）':s.gameOver==='player'?'🏆 自分の勝利':s.deckOut?'⚠️ 山札切れ：検証停止':(s.turnSide==='player'?'👤 自分':'🤖 CPU')+'の番 / 自分 '+s.playerTurns+'番目・CPU '+s.cpuTurns+'番目';
+ status.textContent=!s||!s.placementDone?'初期配置を完了してね。':!s.firstSide?'👤 自分の先攻・後攻を選んでね。':s.gameOver==='cpu'?'🏆 CPUの勝利・自分の敗北（サイド取得または場のポケモンなし）':s.gameOver==='player'?'🏆 自分の勝利':s.pendingPromotion?'🪑 きぜつ後：ベンチから次のバトルポケモンを選んでね':s.deckOut?'⚠️ 山札切れ：検証停止':(s.turnSide==='player'?'👤 自分':'🤖 CPU')+'の番 / 自分 '+s.playerTurns+'番目・CPU '+s.cpuTurns+'番目';
  const es=document.getElementById('realEnergyStatus'),cancel=document.getElementById('realEnergyCancel');
  es.textContent=!s||!s.placementDone?'初期配置後にエネルギーを付けられるよ。':s.turnSide!=='player'?'自分の番になるまで待ってね。':s.attackedThisTurn?'⚔️ 攻撃済み：次の番へ進んでね。':s.deckOut?'山札切れで検証停止中':s.energyAttachedThisTurn?'✅ この番のエネルギー手張りは完了！':s.selectedEnergyIndex!==null?'🔮 ポップアップで付け先を選んでね。':'🔮 手札の基本超エネルギーを選んでね（1ターン1枚）。';
  cancel.disabled=!s||s.selectedEnergyIndex===null;
