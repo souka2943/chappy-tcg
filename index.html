@@ -1574,11 +1574,14 @@ function runRealRegression(){
  test('CPUグッズ：ハイパーボールで進化先をサーチ',()=>{const c=makeCpuRealOpening();c.active={name:'ゴビット'};c.hand=[{name:'ハイパーボール',category:'goods'},{name:'ポケパッド',category:'goods'},{name:'ラッキーメット',category:'tool'}];c.deck=[{name:'メガゴルーグex',category:'pokemon'}];const before=cpuRealCount(c);return cpuRealUseUltraBall(c,[])&&c.hand.length===1&&c.hand[0].name==='メガゴルーグex'&&c.trash.length===3&&cpuRealCount(c)===before;});
  test('CPUグッズ：進化元不在ならハイパーボール温存',()=>{const c=makeCpuRealOpening();c.active={name:'ニャースex'};c.hand=[{name:'ハイパーボール',category:'goods'},{name:'ポケパッド',category:'goods'},{name:'ラッキーメット',category:'tool'}];c.deck=[{name:'メガゴルーグex',category:'pokemon'}];return !cpuRealUseUltraBall(c,[])&&c.trash.length===0;});
  test('CPUベンチ展開：たねのみ最大5匹',()=>{const c=makeCpuRealOpening();c.bench=[];c.benchEnergy=[];c.benchStacks=[];c.benchEnteredTurns=[];c.benchDamage=[];const basic=realDeckSwapped?'ピッピ':'ゴビット',evo=realDeckSwapped?'メガピクシーex':'メガゴルーグex';c.hand=[...Array.from({length:7},()=>({name:basic,category:'pokemon'})),{name:evo,category:'pokemon'}];const n=cpuRealDeploy(c,[]);return n===5&&c.bench.length===5&&c.benchEnergy.length===5&&c.hand.length===3});
- test('β4.5.4.4 CPU進化：ピッピからメガピクシーex',()=>cpuEvolutionRules.get('メガピクシーex')==='ピッピ');
- test('β4.5.4.4 CPU進化：シュシュプからフレフワン',()=>cpuEvolutionRules.get('フレフワン')==='シュシュプ');
- test('β4.5.4.4 ひかりのつばさ：相手ポケモンの特性を防ぐ',()=>realBlocksOpponentPokemonAbility({name:'メガピクシーex'},'player','cpu'));
- test('β4.5.4.4 ひかりのつばさ：自分の特性は防がない',()=>!realBlocksOpponentPokemonAbility({name:'メガピクシーex'},'cpu','cpu'));
- test('β4.5.4.4 CPUかおりあつめ：2枚サーチ・保存則・同ターン1回',()=>{const c=makeCpuRealOpening();c.turns=3;const aroma={name:'フレフワン',category:'pokemon'};c.bench=[aroma];c.benchEnergy=[[]];c.benchStacks=[[]];c.benchEnteredTurns=[1];c.benchDamage=[0];c.deck=[{name:'基本超エネルギー',category:'energy'},{name:'基本超エネルギー',category:'energy'},{name:'ピッピ',category:'pokemon'}];const before=cpuRealCount(c),h=c.hand.length;return cpuRealUseAroma(c,[])===1&&c.hand.length===h+2&&c.deck.length===1&&cpuRealCount(c)===before&&cpuRealUseAroma(c,[])===0;});
+ test('β4.5.4.5 ハイパーボール：メガピクシー進化先を選択',()=>{const c=makeCpuRealOpening();c.active={name:'ピッピ',category:'pokemon'};c.bench=[];c.hand=[{name:'ハイパーボール',category:'goods'},{name:'ミステリーガーデン',category:'stadium'},{name:'ふしぎなアメ',category:'goods'}];c.deck=[{name:'メガピクシーex',category:'pokemon'}];const before=cpuRealCount(c);return cpuRealUltraBallReason(c)==='使用可能'&&cpuRealUseUltraBall(c,[])&&c.hand.some(x=>x.name==='メガピクシーex')&&cpuRealCount(c)===before;});
+ test('β4.5.4.5 ハイパーボール：メガゴルーグ進化先も維持',()=>{const c=makeCpuRealOpening();c.active={name:'ゴビット',category:'pokemon'};c.bench=[];c.hand=[{name:'ハイパーボール',category:'goods'},{name:'ミステリーガーデン',category:'stadium'},{name:'ふしぎなアメ',category:'goods'}];c.deck=[{name:'メガゴルーグex',category:'pokemon'}];return cpuRealUltraBallReason(c)==='使用可能'&&cpuRealUseUltraBall(c,[])&&c.hand.some(x=>x.name==='メガゴルーグex');});
+ test('β4.5.4.5 ハイパーボール：進化先が山札にない場合は温存',()=>{const c=makeCpuRealOpening();c.active={name:'ピッピ',category:'pokemon'};c.bench=[];c.hand=[{name:'ハイパーボール',category:'goods'},{name:'ミステリーガーデン',category:'stadium'},{name:'ふしぎなアメ',category:'goods'}];c.deck=[{name:'シュシュプ',category:'pokemon'}];return cpuRealUltraBallReason(c)!=='使用可能'&&!cpuRealUseUltraBall(c,[]);});
+ test('β4.5.4.5 CPU進化：ピッピからメガピクシーex',()=>cpuEvolutionRules.get('メガピクシーex')==='ピッピ');
+ test('β4.5.4.5 CPU進化：シュシュプからフレフワン',()=>cpuEvolutionRules.get('フレフワン')==='シュシュプ');
+ test('β4.5.4.5 ひかりのつばさ：相手ポケモンの特性を防ぐ',()=>realBlocksOpponentPokemonAbility({name:'メガピクシーex'},'player','cpu'));
+ test('β4.5.4.5 ひかりのつばさ：自分の特性は防がない',()=>!realBlocksOpponentPokemonAbility({name:'メガピクシーex'},'cpu','cpu'));
+ test('β4.5.4.5 CPUかおりあつめ：2枚サーチ・保存則・同ターン1回',()=>{const c=makeCpuRealOpening();c.turns=3;const aroma={name:'フレフワン',category:'pokemon'};c.bench=[aroma];c.benchEnergy=[[]];c.benchStacks=[[]];c.benchEnteredTurns=[1];c.benchDamage=[0];c.deck=[{name:'基本超エネルギー',category:'energy'},{name:'基本超エネルギー',category:'energy'},{name:'ピッピ',category:'pokemon'}];const before=cpuRealCount(c),h=c.hand.length;return cpuRealUseAroma(c,[])===1&&c.hand.length===h+2&&c.deck.length===1&&cpuRealCount(c)===before&&cpuRealUseAroma(c,[])===0;});
  test('CPUエネルギー：1ターン1枚',()=>{const c=makeCpuRealOpening();c.hand=[{name:'基本超エネルギー',category:'energy'},{name:'基本超エネルギー',category:'energy'}];return cpuRealAttach(c,[])&&!cpuRealAttach(c,[])&&c.activeEnergy.length===1&&c.hand.length===1});
  test('CPUエネルギー：次の番は再配置可能',()=>{const c=makeCpuRealOpening();c.hand=[{name:'基本超エネルギー',category:'energy'},{name:'基本超エネルギー',category:'energy'}];cpuRealAttach(c,[]);c.energyAttachedThisTurn=false;return cpuRealAttach(c,[])&&c.activeEnergy.length===2});
  test('CPU手張り：バトル場の攻撃準備を優先',()=>{const c=makeCpuRealOpening();c.active={name:'ゴビット',set:'M6',number:'032/076',category:'pokemon'};c.activeEnergy=[];c.bench=[{name:'ゴビット',set:'M6',number:'032/076',category:'pokemon'}];c.benchEnergy=[[]];c.hand=[{name:'基本超エネルギー',category:'energy'}];return cpuRealAttach(c,[])&&c.activeEnergy.length===1&&c.benchEnergy[0].length===0});
@@ -1630,7 +1633,7 @@ function runRealRegression(){
  test('データ監査：採用ポケモン全収録登録',()=>realCardAudit().every(x=>!!x.definition));
  test('データ監査：全カードのHPとにげるが整数',()=>realCardAudit().every(x=>Number.isInteger(x.definition?.hp)&&Number.isInteger(x.definition?.retreat)&&x.definition.retreat>=0));
  test('データ監査：全ワザのコストが確定',()=>realCardAudit().every(x=>x.definition?.attacks.every(a=>Array.isArray(a.energyCost))));
- test('β4.5.4.4：メガゴルーグexはゴビットから進化できるカード',()=>realEvolutionRules.get('メガゴルーグex')?.from==='ゴビット'&&realEvolutionRules.get('メガゴルーグex')?.stage===1);
+ test('β4.5.4.5：メガゴルーグexはゴビットから進化できるカード',()=>realEvolutionRules.get('メガゴルーグex')?.from==='ゴビット'&&realEvolutionRules.get('メガゴルーグex')?.stage===1);
  test('β4.5.4.3：溶岩洞2枚を場に置いた場合は2枚として数える',()=>{const s={hand:[],deck:[],prizes:[],active:null,bench:[],activeStack:[],benchStacks:[],activeEnergy:[],benchEnergy:[],trash:[],stadium:{owner:'player',card:{name:'伝説の溶岩洞'},cards:[{name:'伝説の溶岩洞',number:'075/076'},{name:'伝説の溶岩洞',number:'076/076'}]}};return realPlacementCount(s)===2;});
  test('β4.5.4.3：ギリー候補の溶岩洞を左右識別',()=>realLavaHalf({name:'伝説の溶岩洞',number:'075/076'})==='左'&&realLavaHalf({name:'伝説の溶岩洞',number:'076/076'})==='右');
  test('にげる：ゴビットとメガゴルーグは3',()=>getRealRetreatCost({name:'ゴビット',set:'M6',number:'032/076'})===3&&getRealRetreatCost({name:'メガゴルーグex',set:'M6',number:'033/076'})===3);
@@ -1780,7 +1783,7 @@ document.getElementById('realAttackBackdrop').onclick=closeRealAttackModal;
 document.getElementById('realAttackModalDismiss').onclick=closeRealAttackModal;
 document.getElementById('realTraceCheck').onclick=()=>realTraceRecord('手動詳細診断');
 document.getElementById('realTraceClear').onclick=()=>{realTraceHistory.length=0;realCpuDecisionHistory.length=0;realTraceRender()};
-document.getElementById('realTraceCopy').onclick=async()=>{const txt='ちゃっぴーTCG β4.5.4.4 追跡ログ\n'+document.getElementById('realTraceOutput').textContent+'\n\n=== CPU判断履歴 ===\n'+realCpuDecisionHistory.join('\n')+'\n\n'+realStadiumAudit(realOpeningState);try{await navigator.clipboard.writeText(txt);alert('追跡ログをコピーしたよ')}catch(e){const t=document.createElement('textarea');t.value=txt;document.body.append(t);t.select();document.execCommand('copy');t.remove();alert('追跡ログのコピーを試みたよ')}};
+document.getElementById('realTraceCopy').onclick=async()=>{const txt='ちゃっぴーTCG β4.5.4.5 追跡ログ\n'+document.getElementById('realTraceOutput').textContent+'\n\n=== CPU判断履歴 ===\n'+realCpuDecisionHistory.join('\n')+'\n\n'+realStadiumAudit(realOpeningState);try{await navigator.clipboard.writeText(txt);alert('追跡ログをコピーしたよ')}catch(e){const t=document.createElement('textarea');t.value=txt;document.body.append(t);t.select();document.execCommand('copy');t.remove();alert('追跡ログのコピーを試みたよ')}};
 // β4.4.1: 非公開領域は開発者用レポートに枚数だけ表示。対戦画面にはカード名を出さない。
 function realStadiumAudit(s){
  if(!s?.cpuReal)return 'スタジアム診断：対戦未開始';
@@ -1817,7 +1820,7 @@ function realCpuReportText(){
  const count=(word)=>decisions.filter(x=>x.includes(word)).length;
  const issues=inspectRealState(s);
  const outcome=s.gameOver==='player'?'自分の勝利':s.gameOver==='cpu'?'CPUの勝利':s.gameOver?'終了（'+s.gameOver+'）':'対戦中';
- return ['ちゃっぴーTCG β4.5.4.4 CPU対戦診断レポート',
+ return ['ちゃっぴーTCG β4.5.4.5 CPU対戦診断レポート',
  '結果：'+outcome,'経過：自分 '+(s.playerTurns||0)+'番 / CPU '+(s.cpuTurns||0)+'番',
  'サイド残数：自分 '+(s.prizes?.length??'?')+' / CPU '+(s.cpuReal?.prizes?.length??'?'),
  'カード総数：自分 '+realPlacementCount(s)+' / CPU '+cpuRealCount(s.cpuReal),
@@ -1882,7 +1885,7 @@ function cpuRealEvolve(c,logs){
  }
  return evolved;
 }
-// β4.5.4.4: CPUのフレフワンは各個体につき自分の番に1回、基本エネルギーを最大2枚サーチ。
+// β4.5.4.5: CPUのフレフワンは各個体につき自分の番に1回、基本エネルギーを最大2枚サーチ。
 function cpuRealUseAroma(c,logs){
  if(!c||!Array.isArray(c.deck)||!Array.isArray(c.hand))return 0;
  c.aromaUsed??=new WeakMap();let used=0;
@@ -2087,13 +2090,24 @@ function realCpuAttack(s){
 
 // β4.0: CPUトレーナーズ最小実装。確認済みの2種類だけを使い、未知の効果は実行しない。
 // β4.2: 条件判定を実行処理と共通化して未使用理由を明示。
+// β4.5.4.5: 場の進化元に対応する進化先をデッキから選ぶ（デッキ固有名の固定判定を廃止）。
+function cpuRealUltraBallTarget(c){
+ if(!c?.deck||!c?.hand)return null;
+ const field=[c.active,...c.bench].filter(Boolean);
+ const choices=c.deck.map((card,index)=>({card,index})).filter(({card})=>
+  card.category==='pokemon'&&field.some(p=>cpuEvolutionRules.get(card.name)===p.name)&&
+  !c.hand.some(h=>h.name===card.name&&h.category==='pokemon'));
+ // メガ進化を優先し、同順位なら山札の順番を維持する。
+ choices.sort((a,b)=>Number(b.card.name.startsWith('メガ'))-Number(a.card.name.startsWith('メガ'))||a.index-b.index);
+ return choices[0]||null;
+}
 function cpuRealUltraBallReason(c){
  if(!c||!Array.isArray(c.hand))return 'CPU状態なし';
  const ball=c.hand.findIndex(x=>x.name==='ハイパーボール'&&x.category==='goods');
  if(ball<0)return '手札にハイパーボールなし';
- if(![c.active,...c.bench].some(x=>x?.name==='ゴビット'))return '場にゴビットなし';
- if(c.hand.some(x=>x.name==='メガゴルーグex'))return '進化先は手札にある';
- if(!c.deck.some(x=>x.name==='メガゴルーグex'&&x.category==='pokemon'))return '山札に進化先なし';
+ if(![c.active,...c.bench].some(x=>x&&[...cpuEvolutionRules.values()].includes(x.name)))return '場に対応する進化元なし';
+ const target=cpuRealUltraBallTarget(c);
+ if(!target)return '山札に必要な進化先なし（または手札に所持）';
  return cpuRealUltraBallCostCandidates(c,ball).length>=2?'使用可能':'現在のCPUコスト選択方針では捨てられる手札が2枚未満';
 }
 // β4.2: 回復価値を評価。今すぐ回復しても効果が小さい場合は温存する。
@@ -2127,7 +2141,7 @@ function cpuRealYukariReason(c){
 }
 function cpuRealUltraBallCostCandidates(c,ball){
  const fieldNames=new Set([c.active,...c.bench].filter(Boolean).map(x=>x.name));
- return c.hand.map((x,i)=>({x,i})).filter(({x,i})=>i!==ball&&x.category!=='energy'&&x.name!=='ゴビット'&&x.name!=='メガゴルーグex')
+ return c.hand.map((x,i)=>({x,i})).filter(({x,i})=>i!==ball&&x.category!=='energy'&&![...cpuEvolutionRules.values()].includes(x.name)&&!cpuEvolutionRules.has(x.name))
  .map(v=>{
   const x=v.x;
   let penalty=0;
@@ -2164,13 +2178,14 @@ function cpuRealUseMegaSignal(c,logs){
 function cpuRealUseUltraBall(c,logs){
  if(cpuRealUltraBallReason(c)!=='使用可能')return false;
  const ball=c.hand.findIndex(x=>x.name==='ハイパーボール'&&x.category==='goods');
- const found=c.deck.findIndex(x=>x.name==='メガゴルーグex'&&x.category==='pokemon');
+ const target=cpuRealUltraBallTarget(c);
+ if(!target)return false;
  const costs=cpuRealUltraBallCostCandidates(c,ball).slice(0,2);
- const discarded=costs.map(v=>v.x),used=c.hand[ball],searched=c.deck.splice(found,1)[0];
+ const discarded=costs.map(v=>v.x),used=c.hand[ball],searched=c.deck.splice(target.index,1)[0];
  [...costs.map(v=>v.i),ball].sort((a,b)=>b-a).forEach(i=>c.hand.splice(i,1));
  c.trash.push(...discarded,used);c.hand.push(searched);c.deck=shuffle(c.deck);
- logs.push('🤖🔎 ハイパーボール：手札2枚をトラッシュしてメガゴルーグexをサーチ');
- realCpuDecisionLog('ハイパーボール使用｜理由：ゴビットが場にあり進化先が手札にない｜コスト：'+discarded.map(x=>x.name).join('・')+'｜選択方針：重要なポケモン・ユカリ・エネルギーを温存｜取得：'+searched.name+'｜山札シャッフル');return true;
+ logs.push('🤖🔎 ハイパーボール：手札2枚をトラッシュして'+searched.name+'をサーチ');
+ realCpuDecisionLog('ハイパーボール使用｜理由：場の進化元に対応する進化先をサーチ｜コスト：'+discarded.map(x=>x.name).join('・')+'｜選択方針：重要なポケモン・ユカリ・エネルギーを温存｜取得：'+searched.name+'｜山札シャッフル');return true;
 }
 function cpuRealUseSupportChoices(c,logs){
  if(c.supportUsedThisTurn||(c.turns===1&&realOpeningState?.firstSide==='cpu'))return false;
