@@ -1366,6 +1366,7 @@ function runRealRegression(){
  test('特性：手札9枚ならゴライアスパンチ不可',()=>!realAbilityAttackPermission({name:'メガゴルーグex',category:'pokemon',set:'M6',number:'033/076'},9).ready);
  test('特性：手札10枚なら攻撃条件達成',()=>realAbilityAttackPermission({name:'メガゴルーグex',category:'pokemon',set:'M6',number:'033/076'},10).ready);
  test('特性：手札11枚でも攻撃条件達成',()=>realAbilityAttackPermission({name:'メガゴルーグex',category:'pokemon',set:'M6',number:'033/076'},11).ready);
+ test('β4.3.1：きどうせいげんの不足枚数を診断可能',()=>{const p=realAbilityAttackPermission({name:'メガゴルーグex',category:'pokemon',set:'M6',number:'033/076'},2);return !p.ready&&p.reason.includes('10枚以上');});
  test('特性：他ポケモンは手札枚数に依存しない',()=>realAbilityAttackPermission({name:'ゴビット',category:'pokemon',set:'M6',number:'032/076'},0).ready);
  test('反動：ゴライアスパンチは30ダメージ処理対象',()=>realAttackSpecialMode(realAttackRegistry.get('メガゴルーグex').attacks[0])==='selfDamage');
  test('反動：効果のないワザには反動なし',()=>realAttackSpecialMode(realAttackRegistry.get('ゴビット').attacks[0])===null);
@@ -1827,7 +1828,10 @@ function realCpuAttack(s){
   else if(!c?.active||!s?.active)reason='バトル場のポケモンなし';
   else if(s.firstSide==='cpu'&&c.turns===1)reason='先攻最初の番';
   else if(!d?.attacks?.length)reason='確認済みのワザなし';
-  else if(!realAbilityAttackPermission(c.active,c.hand.length).ready)reason='ワザの追加使用条件を満たさない';
+  else if(!realAbilityAttackPermission(c.active,c.hand.length).ready){
+   const permission=realAbilityAttackPermission(c.active,c.hand.length);
+   reason='ワザの追加使用条件を満たさない（'+permission.reason+'、現在の手札'+c.hand.length+'枚）';
+  }
   else{
    const modes=d.attacks.filter(a=>realDamageMode(a));
    if(!modes.length)reason='実装済みの攻撃処理なし';
