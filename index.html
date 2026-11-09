@@ -1031,7 +1031,7 @@ function makeCpuRealOpening(){
  const basicIndex=hand.findIndex(cpuIsBasic);const active=hand.splice(basicIndex,1)[0];
  return {deck,hand,prizes,active,bench:[],trash:[],mulligans,turns:0,deckOut:false,activeEnergy:[],benchEnergy:[],energyAttachedThisTurn:false,supportUsedThisTurn:false,activeStack:[],benchStacks:[],activeEnteredTurn:0,benchEnteredTurns:[],damage:0,benchDamage:[]};
 }
-function cpuRealCount(c){return (realOpeningState?.stadium?.owner==='cpu'&&realOpeningState?.cpuReal===c?1:0)+c.deck.length+c.hand.length+c.prizes.length+(c.active?1:0)+c.bench.length+c.trash.length+(c.activeEnergy||[]).length+(c.benchEnergy||[]).reduce((n,a)=>n+a.length,0)+(c.activeStack||[]).length+(c.benchStacks||[]).reduce((n,a)=>n+a.length,0)}
+function cpuRealCount(c){return (realOpeningState?.stadium?.owner==='cpu'&&realOpeningState?.cpuReal===c?realStadiumFieldCards(realOpeningState.stadium).length:0)+c.deck.length+c.hand.length+c.prizes.length+(c.active?1:0)+c.bench.length+c.trash.length+(c.activeEnergy||[]).length+(c.benchEnergy||[]).reduce((n,a)=>n+a.length,0)+(c.activeStack||[]).length+(c.benchStacks||[]).reduce((n,a)=>n+a.length,0)}
 function inspectCpuReal(c){if(!c)return ['CPU盤面が未作成'];const issues=[];if(cpuRealCount(c)!==60)issues.push('CPU合計が60枚ではない');if(!c.active&&!realOpeningState?.gameOver)issues.push('CPUバトル場が空');if(c.bench.length>5)issues.push('CPUベンチが6匹以上');if(!Array.isArray(c.activeEnergy)||!Array.isArray(c.benchEnergy)||c.benchEnergy.length!==c.bench.length)issues.push('CPUエネルギー配列が不正');if(c.prizes.length>6)issues.push('CPUサイドが6枚超');if(!Array.isArray(c.activeStack)||!Array.isArray(c.benchStacks)||c.benchStacks.length!==c.bench.length||!Array.isArray(c.benchEnteredTurns)||c.benchEnteredTurns.length!==c.bench.length)issues.push('CPU進化配列が不正');return issues}
 // β3.5: 共通HP表示。蓄積ダメージを残りHPへ変換し、上限と下限を保証する。
 function realHpView(card,damage){
@@ -1126,7 +1126,7 @@ function drawRealOpening(){
  if(hand.length!==7||prizes.length!==6||deck.length!==47)throw Error('実カードの初期枚数が不正');
  return {cpuReal:makeCpuRealOpening(),hand,prizes,deck,mulligans,stadium:null,active:null,bench:[],placementHistory:[],placementDone:false,firstSide:null,turnSide:null,playerTurns:0,cpuTurns:0,turnLog:[],deckOut:false,energyAttachedThisTurn:false,selectedEnergyIndex:null,selectedEvolutionIndex:null,retreatedThisTurn:false,retreatSelecting:false,supportUsedThisTurn:false,stampEligible:false,stampTestOverride:false,selectedSupportIndex:null,gameOver:null,pendingPromotion:false,attackedThisTurn:false,playerDamage:0,cpuDamage:0,trash:[],activeEnergy:[],benchEnergy:[],activeEnteredTurn:0,benchEnteredTurns:[],activeStack:[],benchStacks:[],damage:0,benchDamage:[]};
 }
-function realPlacementCount(s){return (s.stadium?.owner==='player'?1:0)+s.hand.length+s.prizes.length+s.deck.length+(s.active?1:0)+s.bench.length+(s.activeStack||[]).length+(s.benchStacks||[]).reduce((n,a)=>n+a.length,0)+(s.activeEnergy||[]).length+(s.benchEnergy||[]).reduce((n,a)=>n+a.length,0)+(s.trash||[]).length}
+function realPlacementCount(s){return (s.stadium?.owner==='player'?realStadiumFieldCards(s.stadium).length:0)+s.hand.length+s.prizes.length+s.deck.length+(s.active?1:0)+s.bench.length+(s.activeStack||[]).length+(s.benchStacks||[]).reduce((n,a)=>n+a.length,0)+(s.activeEnergy||[]).length+(s.benchEnergy||[]).reduce((n,a)=>n+a.length,0)+(s.trash||[]).length}
 function placeRealBasic(i){
  const s=realOpeningState;if(!s||s.placementDone)return;
  const c=s.hand[i];if(!c||!isRealBasic(c.name))return;
@@ -1237,7 +1237,8 @@ function playRealBasicToBench(i){
 // β2.9.5: 公式の進化元情報が確認済みのカードだけを許可。名前の部分一致は使わない。
 const realEvolutionRules=new Map([
  ['メガピクシーex',{from:'ピッピ',stage:1}],
- ['フレフワン',{from:'シュシュプ',stage:1}]
+ ['フレフワン',{from:'シュシュプ',stage:1}],
+ ['メガゴルーグex',{from:'ゴビット',stage:1}]
 ]);
 function canSelectRealEvolution(s,c){return !!s&&s.placementDone&&s.turnSide==='player'&&!s.deckOut&&!s.attackedThisTurn&&!s.gameOver&&s.playerTurns>=2&&!!c&&c.category==='pokemon'&&realEvolutionRules.has(c.name)}
 function selectRealEvolution(i){
@@ -1620,6 +1621,9 @@ function runRealRegression(){
  test('データ監査：採用ポケモン全収録登録',()=>realCardAudit().every(x=>!!x.definition));
  test('データ監査：全カードのHPとにげるが整数',()=>realCardAudit().every(x=>Number.isInteger(x.definition?.hp)&&Number.isInteger(x.definition?.retreat)&&x.definition.retreat>=0));
  test('データ監査：全ワザのコストが確定',()=>realCardAudit().every(x=>x.definition?.attacks.every(a=>Array.isArray(a.energyCost))));
+ test('β4.5.4.2：メガゴルーグexはゴビットから進化できるカード',()=>realEvolutionRules.get('メガゴルーグex')?.from==='ゴビット'&&realEvolutionRules.get('メガゴルーグex')?.stage===1);
+ test('β4.5.4.2：溶岩洞2枚を場に置いた場合は2枚として数える',()=>{const s={hand:[],deck:[],prizes:[],active:null,bench:[],activeStack:[],benchStacks:[],activeEnergy:[],benchEnergy:[],trash:[],stadium:{owner:'player',card:{name:'伝説の溶岩洞'},cards:[{name:'伝説の溶岩洞',number:'075/076'},{name:'伝説の溶岩洞',number:'076/076'}]}};return realPlacementCount(s)===2;});
+ test('β4.5.4.2：ギリー候補の溶岩洞を左右識別',()=>realLavaHalf({name:'伝説の溶岩洞',number:'075/076'})==='左'&&realLavaHalf({name:'伝説の溶岩洞',number:'076/076'})==='右');
  test('にげる：ゴビットとメガゴルーグは3',()=>getRealRetreatCost({name:'ゴビット',set:'M6',number:'032/076'})===3&&getRealRetreatCost({name:'メガゴルーグex',set:'M6',number:'033/076'})===3);
  test('にげる：スボミーは0',()=>getRealRetreatCost({name:'スボミー',set:'SV8a',number:'001/187'})===0);
  test('にげる：メガガルーラは3',()=>getRealRetreatCost({name:'メガガルーラex',set:'M1S',number:'051/063'})===3);
@@ -1767,7 +1771,7 @@ document.getElementById('realAttackBackdrop').onclick=closeRealAttackModal;
 document.getElementById('realAttackModalDismiss').onclick=closeRealAttackModal;
 document.getElementById('realTraceCheck').onclick=()=>realTraceRecord('手動詳細診断');
 document.getElementById('realTraceClear').onclick=()=>{realTraceHistory.length=0;realCpuDecisionHistory.length=0;realTraceRender()};
-document.getElementById('realTraceCopy').onclick=async()=>{const txt='ちゃっぴーTCG β4.5.4.1 追跡ログ\n'+document.getElementById('realTraceOutput').textContent+'\n\n=== CPU判断履歴 ===\n'+realCpuDecisionHistory.join('\n')+'\n\n'+realStadiumAudit(realOpeningState);try{await navigator.clipboard.writeText(txt);alert('追跡ログをコピーしたよ')}catch(e){const t=document.createElement('textarea');t.value=txt;document.body.append(t);t.select();document.execCommand('copy');t.remove();alert('追跡ログのコピーを試みたよ')}};
+document.getElementById('realTraceCopy').onclick=async()=>{const txt='ちゃっぴーTCG β4.5.4.2 追跡ログ\n'+document.getElementById('realTraceOutput').textContent+'\n\n=== CPU判断履歴 ===\n'+realCpuDecisionHistory.join('\n')+'\n\n'+realStadiumAudit(realOpeningState);try{await navigator.clipboard.writeText(txt);alert('追跡ログをコピーしたよ')}catch(e){const t=document.createElement('textarea');t.value=txt;document.body.append(t);t.select();document.execCommand('copy');t.remove();alert('追跡ログのコピーを試みたよ')}};
 // β4.4.1: 非公開領域は開発者用レポートに枚数だけ表示。対戦画面にはカード名を出さない。
 function realStadiumAudit(s){
  if(!s?.cpuReal)return 'スタジアム診断：対戦未開始';
@@ -1804,7 +1808,7 @@ function realCpuReportText(){
  const count=(word)=>decisions.filter(x=>x.includes(word)).length;
  const issues=inspectRealState(s);
  const outcome=s.gameOver==='player'?'自分の勝利':s.gameOver==='cpu'?'CPUの勝利':s.gameOver?'終了（'+s.gameOver+'）':'対戦中';
- return ['ちゃっぴーTCG β4.5.2 CPU対戦診断レポート',
+ return ['ちゃっぴーTCG β4.5.4.2 CPU対戦診断レポート',
  '結果：'+outcome,'経過：自分 '+(s.playerTurns||0)+'番 / CPU '+(s.cpuTurns||0)+'番',
  'サイド残数：自分 '+(s.prizes?.length??'?')+' / CPU '+(s.cpuReal?.prizes?.length??'?'),
  'カード総数：自分 '+realPlacementCount(s)+' / CPU '+cpuRealCount(s.cpuReal),
@@ -2689,7 +2693,7 @@ function openRealNewGoodsSelection(handIndex){
  if(c.name==='ハイパーボール'){const searchTitle=document.createElement('p');searchTitle.textContent='② サーチ：黄色のポケモンを1枚選択（コスト選択だけでは確定できません）';panel.insertBefore(searchTitle,list);}
  const buttons=[];source.forEach((item,i)=>{
   const ok=allowed.has(i),b=document.createElement('button');b.type='button';b.disabled=!ok;b.className='real-selection-card '+(ok?'real-selection-eligible':'real-selection-ineligible');
-  b.textContent=item.name+' / '+(ok?'選択可能':'対象外');
+  b.textContent=item.name+(realLavaHalf(item)?'（'+realLavaHalf(item)+'・'+(item.number||'番号不明')+'）':'')+' / '+(ok?'選択可能':'対象外');
   b.onclick=()=>{if(selected.has(i))selected.delete(i);else if(selected.size<cap)selected.add(i);refresh();};list.append(b);buttons.push(b);
  });
  if(c.name==='ハイパーボール'){
@@ -2763,7 +2767,7 @@ function openRealGillySelection(handIndex){
  const status=document.createElement('p');status.className='notice';panel.append(status);
  const allowed=new Set(realSelectionCandidates(s,'gilly').map(x=>x.index)),selected=new Set();
  const list=document.createElement('div');list.className='real-selection-list';panel.append(list);
- const buttons=[];s.deck.forEach((item,i)=>{const ok=allowed.has(i),b=document.createElement('button');b.type='button';b.disabled=!ok;b.className='real-selection-card '+(ok?'real-selection-eligible':'real-selection-ineligible');b.textContent=item.name+' / '+(ok?'選択可能':'対象外');b.onclick=()=>{if(selected.has(i))selected.delete(i);else if(selected.size<3)selected.add(i);refresh();};list.append(b);buttons.push(b);});
+ const buttons=[];s.deck.forEach((item,i)=>{const ok=allowed.has(i),b=document.createElement('button');b.type='button';b.disabled=!ok;b.className='real-selection-card '+(ok?'real-selection-eligible':'real-selection-ineligible');b.textContent=item.name+(realLavaHalf(item)?'（'+realLavaHalf(item)+'・'+(item.number||'番号不明')+'）':'')+' / '+(ok?'選択可能':'対象外');b.onclick=()=>{if(selected.has(i))selected.delete(i);else if(selected.size<3)selected.add(i);refresh();};list.append(b);buttons.push(b);});
  const {apply,actions}=realCreateEffectActions(panel,()=>true,close=>{if(realOpeningState!==s||!realCommitGilly(s,handIndex,[...selected])){status.textContent='⚠️ 状態が変わったため中止したよ';return;}close();renderRealOpening();});
  panel.insertBefore(actions,list);
  function refresh(){status.textContent='選択中 '+selected.size+' / 3枚';apply.disabled=false;buttons.forEach((b,i)=>{b.classList.toggle('real-selection-picked',selected.has(i));b.setAttribute('aria-pressed',String(selected.has(i)));});}
@@ -2790,7 +2794,7 @@ function renderRealSelectionPreview(){
   const b=document.createElement('button');b.type='button';
   b.className='real-selection-card '+(eligible?'real-selection-eligible':'real-selection-ineligible');
   b.disabled=!eligible;
-  const name=document.createElement('span');name.className='real-selection-name';name.textContent=card.name||'名称未登録';
+  const name=document.createElement('span');name.className='real-selection-name';name.textContent=(card.name||'名称未登録')+(realLavaHalf(card)?'（'+realLavaHalf(card)+'・'+(card.number||'番号不明')+'）':'');
   const info=document.createElement('span');info.className='real-selection-meta';
   info.textContent=({pokemon:'ポケモン',goods:'グッズ',support:'サポート',stadium:'スタジアム',energy:'エネルギー',tool:'ポケモンのどうぐ'})[card.category]||card.category||'種類未登録';
   const mark=document.createElement('span');mark.className='real-selection-mark';
