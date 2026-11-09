@@ -1066,15 +1066,24 @@ function renderCpuReal(){
 const realEffectHooks={continuous:[],activated:[],triggered:[]};
 function realRegisterEffect(kind,handler){if(!Object.hasOwn(realEffectHooks,kind)||typeof handler!=='function')return false;realEffectHooks[kind].push(handler);return true;}
 function realEvaluateEffects(kind,context){if(!Object.hasOwn(realEffectHooks,kind))return [];return realEffectHooks[kind].map(fn=>fn(context)).filter(x=>x!=null);}
+function realLavaHalf(card){if(card?.name!=='伝説の溶岩洞')return null;return card.number==='075/076'?'左':card.number==='076/076'?'右':null;}
+function realStadiumPairIndex(owner,card,index){
+ if(card?.name!=='伝説の溶岩洞')return -1;
+ const half=realLavaHalf(card);if(!half)return -1;
+ return owner.hand.findIndex((c,i)=>i!==index&&c.name===card.name&&realLavaHalf(c)!==half&&realLavaHalf(c)!==null);
+}
+function realStadiumFieldCards(field){return field?.cards|| (field?.card?[field.card]:[]);}
 function realStadiumCanPlay(s,side,card){
- return !!s&&!!s.firstSide&&!s.gameOver&&!s.pendingPromotion&&!s.attackedThisTurn&&s.turnSide===side&&card?.category==='stadium'&&s.stadium?.card?.name!==card.name;
+ return !!s&&!!s.firstSide&&!s.gameOver&&!s.pendingPromotion&&!s.attackedThisTurn&&s.turnSide===side&&card?.category==='stadium'&&s.stadium?.card?.name!==card.name&&(card.name!=='伝説の溶岩洞'||realStadiumPairIndex(side==='player'?s:s.cpuReal,card,(side==='player'?s:s.cpuReal).hand.indexOf(card))>=0);
 }
 function realPlayStadium(s,side,index){
  const owner=side==='player'?s:s?.cpuReal,card=owner?.hand?.[index];
  if(!realStadiumCanPlay(s,side,card))return false;
  const old=s.stadium;
- if(old){(old.owner==='player'?s:s.cpuReal).trash.push(old.card);}
- owner.hand.splice(index,1);s.stadium={card,owner:side};
+ if(old){(old.owner==='player'?s:s.cpuReal).trash.push(...realStadiumFieldCards(old));}
+ const pairIndex=realStadiumPairIndex(owner,card,index);
+ const cards=pairIndex>=0?[card,owner.hand[pairIndex]]:[card];
+ [...(pairIndex>=0?[index,pairIndex]:[index])].sort((a,b)=>b-a).forEach(i=>owner.hand.splice(i,1));s.stadium={card, cards,owner:side};
  s.turnLog.unshift('🏟️ '+(side==='player'?'自分':'CPU')+'が'+card.name+'を場に出した'+(old?'（'+old.card.name+'を持ち主のトラッシュへ）':''));
  realEvaluateEffects('triggered',{event:'stadium_played',state:s,side,card,previous:old?.card||null});
  return true;
@@ -1094,11 +1103,11 @@ function realCpuPlayStadium(s){
  realCpuDecisionLog('スタジアム'+(old?'張り替え':'配置')+'｜'+card.name+'｜所有者：CPU'+(old?'｜旧：'+old.card.name+'（所有者：'+(old.owner==='cpu'?'CPU':'自分')+'）→持ち主のトラッシュ':'｜場にスタジアムなし'));
  return true;
 }
-function realRenderStadium(s){const el=document.getElementById('realStadiumStatus');if(!el)return;el.textContent=s?.stadium?'🏟️ '+s.stadium.card.name+'（配置：'+(s.stadium.owner==='player'?'自分':'CPU')+'） / 固有効果は未実装':'🏟️ スタジアムなし';}
+function realRenderStadium(s){const el=document.getElementById('realStadiumStatus');if(!el)return;el.textContent=s?.stadium?'🏟️ '+s.stadium.card.name+'（'+realStadiumFieldCards(s.stadium).length+'枚・配置：'+(s.stadium.owner==='player'?'自分':'CPU')+'） / 固有効果は未実装':'🏟️ スタジアムなし';}
 let realOpeningState=null;
 function makeRealOpeningDeck(entries=realDeckEntries){
  const deck=[];
- for(const e of entries){if(!Number.isInteger(e.count)||e.count<0)throw Error('実カードの枚数が不正');for(let i=0;i<e.count;i++)deck.push({name:e.name,category:e.category,set:e.set,number:e.number,verified:e.verified});}
+ for(const e of entries){if(!Number.isInteger(e.count)||e.count<0)throw Error('実カードの枚数が不正');for(let i=0;i<e.count;i++)deck.push({name:e.name,category:e.category,set:e.set,number:e.name==='伝説の溶岩洞'?(i%2===0?'075/076':'076/076'):e.number,verified:e.verified});}
  if(deck.length!==60)throw Error('実カードデッキは60枚必要');
  if(!deck.some(c=>c.category==='pokemon'&&isRealBasic(c.name)))throw Error('たねポケモンが未登録');
  return shuffle(deck);
@@ -1191,7 +1200,7 @@ function renderRealOpening(){
  if(!s){document.getElementById('realOpeningCounts').textContent='';renderCpuReal();renderRealTurn();renderRealAttackPrep();realRenderPromotion();return}
  document.getElementById('realOpeningStatus').textContent=s.placementDone?'✅ 初期配置完了！ 自分の番には手札のたねポケモンをベンチに出せるよ。':s.active?'🌱 ベンチへ追加するか、配置完了を押してね。':'🌱 手札からバトル場に出すたねポケモンを選んでね。';
  document.getElementById('realOpeningCounts').textContent='手札 '+s.hand.length+'枚 / バトル場 '+(s.active?1:0)+'枚 / ベンチ '+s.bench.length+'枚 / 進化元カード '+(s.activeStack.length+s.benchStacks.reduce((n,a)=>n+a.length,0))+'枚 / 付属エネルギー '+(s.activeEnergy.length+s.benchEnergy.reduce((n,a)=>n+a.length,0))+'枚 / トラッシュ '+s.trash.length+'枚 / サイド '+s.prizes.length+'枚（非公開） / 山札 '+s.deck.length+'枚 / 合計 '+realPlacementCount(s)+'枚 / マリガン '+s.mulligans+'回';
- s.hand.forEach((c,i)=>{const b=document.createElement('button');b.className='card';b.type='button';const energyOK=canSelectRealEnergy(s,c),benchOK=canPlayRealBasicToBench(s,c),evolutionOK=canSelectRealEvolution(s,c),supportOK=canSelectRealSupport(s,c),rodOK=canUseRealMaxRod(s,c),newGoodsOK=canUseRealNewGoods(s,c),stampOK=canUseRealStamp(s,c),stadiumOK=realStadiumCanPlay(s,'player',c);b.textContent=c.name+(isRealBasic(c.name)?' 🌱':'')+(s.selectedEnergyIndex===i||s.selectedEvolutionIndex===i||s.selectedSupportIndex===i?' ✅ 選択中':'')+' / '+({pokemon:'ポケモン',goods:'グッズ',support:'サポート',stadium:'スタジアム',energy:'エネルギー'}[c.category]);b.disabled=s.placementDone?!(energyOK||benchOK||evolutionOK||supportOK||rodOK||newGoodsOK||stampOK||stadiumOK):!isRealBasic(c.name)||!!s.active&&s.bench.length>=5;if(c.category==='support'&&!supportOK){const reason=realSupportBlockReason(s,c);b.textContent+=' / ⛔ '+reason;}if(isRealAttachableEnergy(c)&&!energyOK){b.textContent+=' / ⛔ '+realEnergyBlockReason(s,c);}b.title=s.placementDone?(benchOK?'タップしてベンチに出す':energyOK?'タップして手張り先を選択':evolutionOK?'進化先を選択':supportOK?'サポートを選択':rodOK?'つりざおMAXを使用':newGoodsOK?'グッズを使用':stampOK?'アンフェアスタンプを使用':stadiumOK?'スタジアムを出す':c.category==='support'?realSupportBlockReason(s,c):'今は選択できないよ'):(isRealBasic(c.name)?'タップして配置':'初期配置できるのはたねポケモンだけ');b.onclick=()=>s.placementDone?(benchOK?playRealBasicToBench(i):energyOK?selectRealEnergy(i):evolutionOK?selectRealEvolution(i):rodOK?openRealMaxRodSelection(i):stadiumOK?realPlayerPlayStadium(i):stampOK?openRealStampSelection(i):newGoodsOK?(c.name==='アンフェアスタンプ(ACE SPEC)'?openRealStampSelection(i):openRealNewGoodsSelection(i)):selectRealSupport(i)):placeRealBasic(i);hand.append(b)});
+ s.hand.forEach((c,i)=>{const b=document.createElement('button');b.className='card';b.type='button';const energyOK=canSelectRealEnergy(s,c),benchOK=canPlayRealBasicToBench(s,c),evolutionOK=canSelectRealEvolution(s,c),supportOK=canSelectRealSupport(s,c),rodOK=canUseRealMaxRod(s,c),newGoodsOK=canUseRealNewGoods(s,c),stampOK=canUseRealStamp(s,c),stadiumOK=realStadiumCanPlay(s,'player',c);b.textContent=c.name+(realLavaHalf(c)?'（'+realLavaHalf(c)+'）':'')+(isRealBasic(c.name)?' 🌱':'')+(s.selectedEnergyIndex===i||s.selectedEvolutionIndex===i||s.selectedSupportIndex===i?' ✅ 選択中':'')+' / '+({pokemon:'ポケモン',goods:'グッズ',support:'サポート',stadium:'スタジアム',energy:'エネルギー'}[c.category]);b.disabled=s.placementDone?!(energyOK||benchOK||evolutionOK||supportOK||rodOK||newGoodsOK||stampOK||stadiumOK):!isRealBasic(c.name)||!!s.active&&s.bench.length>=5;if(c.category==='support'&&!supportOK){const reason=realSupportBlockReason(s,c);b.textContent+=' / ⛔ '+reason;}if(isRealAttachableEnergy(c)&&!energyOK){b.textContent+=' / ⛔ '+realEnergyBlockReason(s,c);}b.title=s.placementDone?(benchOK?'タップしてベンチに出す':energyOK?'タップして手張り先を選択':evolutionOK?'進化先を選択':supportOK?'サポートを選択':rodOK?'つりざおMAXを使用':newGoodsOK?'グッズを使用':stampOK?'アンフェアスタンプを使用':stadiumOK?'スタジアムを出す':c.category==='support'?realSupportBlockReason(s,c):'今は選択できないよ'):(isRealBasic(c.name)?'タップして配置':'初期配置できるのはたねポケモンだけ');b.onclick=()=>s.placementDone?(benchOK?playRealBasicToBench(i):energyOK?selectRealEnergy(i):evolutionOK?selectRealEvolution(i):rodOK?openRealMaxRodSelection(i):stadiumOK?realPlayerPlayStadium(i):stampOK?openRealStampSelection(i):newGoodsOK?(c.name==='アンフェアスタンプ(ACE SPEC)'?openRealStampSelection(i):openRealNewGoodsSelection(i)):selectRealSupport(i)):placeRealBasic(i);hand.append(b)});
  const show=(root,c,energies,location,index)=>{const b=document.createElement('button');b.type='button';b.className='card';b.textContent=c.name+' / 超エネルギー '+energies.length+'枚 / 進化元 '+(location==='active'?s.activeStack.length:s.benchStacks[index].length)+'枚';realAppendHp(b,c,location==='active'?s.damage:(s.benchDamage[index]||0));const retreatOK=location==='bench'&&canFinishRealRetreat(s,index);const enabled=retreatOK||canAttachRealEnergy(s)||canEvolveRealAt(s,location,index);b.disabled=location==='active'?false:!enabled;b.title=retreatOK?'にげる：このポケモンをバトル場へ':canEvolveRealAt(s,location,index)?'選択中のポケモンに進化':canAttachRealEnergy(s)?'選択した超エネルギーを付ける':'エネルギーまたは進化ポケモンを選んでね';b.onclick=()=>location==='active'?openRealAttackModal():retreatOK?openRealRetreatPayment(index):canEvolveRealAt(s,location,index)?evolveRealAt(location,index):attachRealEnergy(location,index);root.append(b);if(location==='active'&&realCanKangaskhanDash(s)){const dash=document.createElement('button');dash.type='button';dash.className='card';dash.textContent='🦘 メガガルーラex：特性「おつかいダッシュ」を使う';dash.onclick=realUseKangaskhanDash;root.append(dash);}if(realCanUseAroma(s,c)){const ability=document.createElement('button');ability.type='button';ability.className='card';ability.textContent='🌸 '+c.name+'：特性「かおりあつめ」を使う';ability.onclick=()=>openRealAromaSelection(c);root.append(ability);}};
  if(s.active)show(active,s.active,s.activeEnergy,'active',0);else active.textContent=s.pendingPromotion?'🪑 交代先を選択中':'未配置';
  s.bench.forEach((c,i)=>show(bench,c,s.benchEnergy[i],'bench',i));if(!s.bench.length)bench.textContent='まだいないよ';
@@ -1758,7 +1767,7 @@ document.getElementById('realAttackBackdrop').onclick=closeRealAttackModal;
 document.getElementById('realAttackModalDismiss').onclick=closeRealAttackModal;
 document.getElementById('realTraceCheck').onclick=()=>realTraceRecord('手動詳細診断');
 document.getElementById('realTraceClear').onclick=()=>{realTraceHistory.length=0;realCpuDecisionHistory.length=0;realTraceRender()};
-document.getElementById('realTraceCopy').onclick=async()=>{const txt='ちゃっぴーTCG β4.5.4 追跡ログ\n'+document.getElementById('realTraceOutput').textContent+'\n\n=== CPU判断履歴 ===\n'+realCpuDecisionHistory.join('\n')+'\n\n'+realStadiumAudit(realOpeningState);try{await navigator.clipboard.writeText(txt);alert('追跡ログをコピーしたよ')}catch(e){const t=document.createElement('textarea');t.value=txt;document.body.append(t);t.select();document.execCommand('copy');t.remove();alert('追跡ログのコピーを試みたよ')}};
+document.getElementById('realTraceCopy').onclick=async()=>{const txt='ちゃっぴーTCG β4.5.4.1 追跡ログ\n'+document.getElementById('realTraceOutput').textContent+'\n\n=== CPU判断履歴 ===\n'+realCpuDecisionHistory.join('\n')+'\n\n'+realStadiumAudit(realOpeningState);try{await navigator.clipboard.writeText(txt);alert('追跡ログをコピーしたよ')}catch(e){const t=document.createElement('textarea');t.value=txt;document.body.append(t);t.select();document.execCommand('copy');t.remove();alert('追跡ログのコピーを試みたよ')}};
 // β4.4.1: 非公開領域は開発者用レポートに枚数だけ表示。対戦画面にはカード名を出さない。
 function realStadiumAudit(s){
  if(!s?.cpuReal)return 'スタジアム診断：対戦未開始';
@@ -1772,9 +1781,9 @@ function realStadiumAudit(s){
    for(const c of cs){const k=side+'|'+c.name;totals[k]=(totals[k]||0)+1;}
    return name+cs.length+'枚';
   });
-  const field=s.stadium?.owner===(side==='CPU'?'cpu':'player')?s.stadium.card:null;
-  if(field){const k=side+'|'+field.name;totals[k]=(totals[k]||0)+1;}
-  lines.push(side+'：'+parts.join(' / ')+' / 場'+(field?'1枚（'+field.name+'）':'0枚'));
+  const field=s.stadium?.owner===(side==='CPU'?'cpu':'player')?realStadiumFieldCards(s.stadium):[];
+  for(const c of field){const k=side+'|'+c.name;totals[k]=(totals[k]||0)+1;}
+  lines.push(side+'：'+parts.join(' / ')+' / 場'+field.length+'枚'+(field.length?'（'+field[0].name+'）':''));
  }
  lines.push('共有スタジアム：'+(s.stadium?s.stadium.card.name+' / 配置者：'+(s.stadium.owner==='cpu'?'CPU':'自分'):'なし'));
  const expected=[['自分',realPlayerEntries()],['CPU',realCpuEntries()]];
@@ -2022,6 +2031,7 @@ function realCpuAttack(s){
  realCpuDecisionLog('攻撃実行｜'+c.active.name+'｜'+attack.name+'｜必要エネルギー充足｜基本ダメージ'+attack.baseDamage+'｜処理方式'+mode);
  let damage=attack.baseDamage,coinNote='';
  if(mode==='benchCountBonus')damage+=20*(s.bench.length+c.bench.length);
+ if(mode==='blockOpponentGoods')s.playerGoodsBlockedUntil=s.playerTurns+1;
  if(mode==='noAttackNextTurn'){s.realAttackLock??={};s.realAttackLock.cpu={card:c.active,until:c.turns+1};}
  if(mode==='coinUntilTails'){
   const toss=realCoinUntilTails();damage+=50*toss.heads;
@@ -2100,6 +2110,18 @@ function cpuRealUseYukari(c,logs){
  logs.push('🤖💗 ユカリ：'+t.name+'を'+amount+'回復');
  realCpuDecisionLog('ユカリ使用｜理由：'+(t.urgent?'残りHPが少ない':'回復価値が高い')+'｜対象：'+t.name+'｜回復：'+amount+'｜サポート使用済み');return true;
 }
+function cpuRealUseMegaSignal(c,logs){
+ const s=realOpeningState;
+ if(!c?.hand||!c.deck||s?.cpuReal!==c||s.cpuGoodsBlockedUntil>=c.turns)return false;
+ const i=c.hand.findIndex(x=>x.name==='メガシグナル'&&x.category==='goods');
+ if(i<0)return false;
+ const hasGolurk=[c.active,...c.bench].some(x=>x?.name==='ゴビット');
+ const hasTargetInHand=c.hand.some(x=>x.name==='メガゴルーグex');
+ const target=c.deck.findIndex(x=>x.name==='メガゴルーグex'&&x.category==='pokemon');
+ if(!hasGolurk||hasTargetInHand||target<0){realCpuDecisionLog('メガシグナル未使用｜'+(!hasGolurk?'ゴビットが場にいない':hasTargetInHand?'進化先を所持':'山札にメガゴルーグexなし'));return false;}
+ const used=c.hand.splice(i,1)[0],found=c.deck.splice(target,1)[0];c.trash.push(used);c.hand.push(found);c.deck=shuffle(c.deck);
+ logs.push('🤖📡 メガシグナル：メガゴルーグexをサーチ');realCpuDecisionLog('メガシグナル使用｜メガゴルーグex取得｜ハイパーボールの手札コストを節約');return true;
+}
 function cpuRealUseUltraBall(c,logs){
  if(cpuRealUltraBallReason(c)!=='使用可能')return false;
  const ball=c.hand.findIndex(x=>x.name==='ハイパーボール'&&x.category==='goods');
@@ -2146,8 +2168,9 @@ function cpuRealTakeActions(c,logs){
  cpuRealKangaskhanDash(c,logs);
  if(!realRegressionRunning&&realOpeningState?.cpuReal===c&&realCpuPlayStadium(realOpeningState))logs.push('🤖🏟️ スタジアムを配置');
  const goodsBlocked=!!realOpeningState&&realOpeningState.cpuReal===c&&realOpeningState.cpuGoodsBlockedUntil>=c.turns;
- const ballReason=goodsBlocked?'むずむずかふんでグッズ使用不可':cpuRealUltraBallReason(c);
- if(goodsBlocked||!cpuRealUseUltraBall(c,logs))realCpuDecisionLog('ハイパーボール未使用｜'+ballReason);
+ const signalUsed=!goodsBlocked&&cpuRealUseMegaSignal(c,logs);
+ const ballReason=goodsBlocked?'むずむずかふんでグッズ使用不可':signalUsed?'メガシグナルで進化先を取得済み':cpuRealUltraBallReason(c);
+ if(goodsBlocked||signalUsed||!cpuRealUseUltraBall(c,logs))realCpuDecisionLog('ハイパーボール未使用｜'+ballReason);
  cpuRealEvolve(c,logs);
  cpuRealUseSupportChoices(c,logs);
  const yukariReason=cpuRealYukariReason(c);
@@ -2401,6 +2424,7 @@ function realPokemonRuleStatus(card){
 }
 const REAL_SEARCH_RULES=Object.freeze({
  ultraBall:c=>c?.category==='pokemon',
+ megaSignal:c=>c?.category==='pokemon'&&/^メガ.+ex$/.test(c.name||''),
  pokePad:c=>c?.category==='pokemon'&&realPokemonRuleStatus(c)===false,
  buddyPoffin:c=>c?.category==='pokemon'&&realAttackRegistry.get(c.name)?.stage===0&&realAttackRegistry.get(c.name)?.hp<=70,
  sacredAsh:c=>c?.category==='pokemon',
@@ -2423,6 +2447,7 @@ function realMoveSelectedCards(source,destination,indices,max){
 // β3.9.2: 実カード選択処理の共通基盤。ここではカード効果を発動せず、安全に候補を確認する。
 const REAL_SELECTION_SPECS=Object.freeze({
  ultraBall:Object.freeze({zone:'deck',rule:'ultraBall',max:1,destination:'hand'}),
+ megaSignal:Object.freeze({zone:'deck',rule:'megaSignal',max:1,destination:'hand'}),
  pokePad:Object.freeze({zone:'deck',rule:'pokePad',max:1,destination:'hand'}),
  buddyPoffin:Object.freeze({zone:'deck',rule:'buddyPoffin',max:2,destination:'bench'}),
  sacredAsh:Object.freeze({zone:'trash',rule:'sacredAsh',max:5,destination:'deck'}),
@@ -2450,7 +2475,7 @@ function realValidateSelection(state,kind,indices){
 // β3.9.2: つりざおMAX（SV8a 142/187）の公式効果。
 // トラッシュのポケモン・基本エネルギーを合計5枚まで手札へ戻す。
 // 事前検証後にのみ状態を書き換える（キャンセルでは何も変わらない）。
-function canUseRealMaxRod(s,c){
+function canUseRealMaxRod(s,c){if(realPlayerGoodsBlocked(s))return false;
  return !!s&&s.placementDone&&s.firstSide&&s.turnSide==='player'&&!s.attackedThisTurn&&!s.gameOver&&!s.deckOut&&c?.category==='goods'&&c.name==='つりざおMAX(ACE SPEC)'&&realSelectionCandidates(s,'maxRod').length>0;
 }
 function realCommitMaxRod(s,handIndex,trashIndices){
@@ -2504,6 +2529,7 @@ function openRealMaxRodSelection(handIndex){
 // β3.9.2: 公式テキスト照合済みのグッズ3種。実カードの領域と個体を保持する。
 const REAL_NEW_GOODS=Object.freeze({
  'ハイパーボール':{zone:'deck',kind:'ultraBall',max:1,title:'🔎 ハイパーボール：手札2枚をトラッシュしてポケモンを探す'},
+ 'メガシグナル':{zone:'deck',kind:'megaSignal',max:1,title:'📡 メガシグナル：メガシンカexを1枚手札へ'},
  'なかよしポフィン':{zone:'deck',kind:'buddyPoffin',max:2,title:'🍞 なかよしポフィン：HP70以下のたねポケモンをベンチへ'},
  'せいなるはい':{zone:'trash',kind:'sacredAsh',max:5,title:'🕊️ せいなるはい：トラッシュのポケモンを最大5枚山札へ'},
  'エネルギーリサイクル':{zone:'trash',kind:'energyRecycle',max:5,title:'♻️ エネルギーリサイクル：基本エネルギーを山札へ'},
@@ -2591,7 +2617,7 @@ function debugGiveRealYukari(){
  out.textContent='⚠️ CPUの山札・手札・トラッシュにユカリがないよ';
 }
 document.getElementById('realYukariDebugAdd').onclick=debugGiveRealYukari;
-function canUseRealStamp(s,c){return !!s&&s.placementDone&&s.firstSide&&s.turnSide==='player'&&!s.attackedThisTurn&&!s.gameOver&&!s.deckOut&&!s.pendingPromotion&&c?.name==='アンフェアスタンプ(ACE SPEC)'&&c.category==='goods'&&(s.stampEligible||s.stampTestOverride);}
+function canUseRealStamp(s,c){return !!s&&s.placementDone&&s.firstSide&&s.turnSide==='player'&&!s.attackedThisTurn&&!s.gameOver&&!s.deckOut&&!s.pendingPromotion&&c?.name==='アンフェアスタンプ(ACE SPEC)'&&c.category==='goods'&&!realPlayerGoodsBlocked(s)&&(s.stampEligible||s.stampTestOverride);}
 function openRealStampSelection(handIndex){
  const s=realOpeningState,c=s?.hand?.[handIndex];if(!canUseRealStamp(s,c))return;
  const panel=document.getElementById('realMaxRodPanel');panel.hidden=false;panel.replaceChildren();
@@ -2615,12 +2641,13 @@ function debugStampKO(){
 document.getElementById('realStampDebugAdd').onclick=debugGiveRealStamp;
 document.getElementById('realStampDebugKO').onclick=debugStampKO;
 
+function realPlayerGoodsBlocked(s){return !!s&&s.turnSide==='player'&&s.playerGoodsBlockedUntil>=s.playerTurns;}
 function realNewGoodsCandidates(s,name){
  if(name==='ワンダーパッチ')return realEligibleSearchCards(s.trash,'energyRecycle');
  return realSelectionCandidates(s,REAL_NEW_GOODS[name]?.kind);
 }
 function canUseRealNewGoods(s,c){
- if(!s||!s.placementDone||!s.firstSide||s.turnSide!=='player'||s.attackedThisTurn||s.gameOver||s.deckOut||c?.category!=='goods'||!REAL_NEW_GOODS[c.name])return false;
+ if(!s||!s.placementDone||!s.firstSide||s.turnSide!=='player'||s.attackedThisTurn||s.gameOver||s.deckOut||c?.category!=='goods'||!REAL_NEW_GOODS[c.name]||realPlayerGoodsBlocked(s))return false;
  if(c.name==='ワンダーパッチ'&&!s.bench.length)return false;
  if(c.name==='ハイパーボール'&&s.hand.length<3)return false;
  if(c.name==='なかよしポフィン'&&s.bench.length>=5)return false;
@@ -2628,20 +2655,20 @@ function canUseRealNewGoods(s,c){
 }
 function realCommitNewGoods(s,handIndex,indices,benchIndex=null,costIndices=[]){
  const card=s?.hand?.[handIndex],name=card?.name,info=REAL_NEW_GOODS[name];
- if(!info||!canUseRealNewGoods(s,card)||!Array.isArray(indices)||(!indices.length&&!['ハイパーボール','なかよしポフィン'].includes(name))||indices.length>info.max||new Set(indices).size!==indices.length)return false;
+ if(!info||!canUseRealNewGoods(s,card)||!Array.isArray(indices)||(!indices.length&&!['ハイパーボール','なかよしポフィン','メガシグナル'].includes(name))||indices.length>info.max||new Set(indices).size!==indices.length)return false;
  const source=s[info.zone],allowed=new Set(realNewGoodsCandidates(s,name).map(x=>x.index));
  if(indices.some(i=>!Number.isInteger(i)||!allowed.has(i)))return false;
  if(name==='ワンダーパッチ'&&(!Number.isInteger(benchIndex)||benchIndex<0||benchIndex>=s.bench.length||!Array.isArray(s.benchEnergy[benchIndex])))return false;
  if(name==='ハイパーボール'&&(!Array.isArray(costIndices)||costIndices.length!==2||new Set(costIndices).size!==2||costIndices.some(i=>!Number.isInteger(i)||i<0||i>=s.hand.length||i===handIndex)))return false;
  // サーチ対象が存在する場合は、コストだけを支払って終了できないようにする。
- if(name==='ハイパーボール'&&allowed.size>0&&indices.length!==1)return false;
+ if((name==='ハイパーボール'||name==='メガシグナル')&&allowed.size>0&&indices.length!==1)return false;
  if(name==='なかよしポフィン'&&s.bench.length+indices.length>5)return false;
  const moved=indices.map(i=>source[i]);
  // すべての条件が成立した後だけ状態を変更。選択キャンセル時は無変更。
  [...indices].sort((a,b)=>b-a).forEach(i=>source.splice(i,1));
  if(name==='ハイパーボール'){const costs=costIndices.map(i=>s.hand[i]);[...costIndices].sort((a,b)=>b-a).forEach(i=>s.hand.splice(i,1));s.trash.push(...costs);handIndex-=costIndices.filter(i=>i<handIndex).length;}
  const used=s.hand.splice(handIndex,1)[0];s.trash.push(used);
- if(name==='ハイパーボール'){s.hand.push(...moved);s.deck=shuffle(s.deck);}
+ if(name==='ハイパーボール'||name==='メガシグナル'){s.hand.push(...moved);s.deck=shuffle(s.deck);}
  else if(name==='なかよしポフィン'){for(const item of moved){s.bench.push(item);s.benchEnergy.push([]);s.benchDamage.push(0);s.benchStacks.push([]);s.benchEnteredTurns.push(s.playerTurns);}s.deck=shuffle(s.deck);}
  else if(name==='ポケパッド'){s.hand.push(...moved);s.deck=shuffle(s.deck);}
  else if(name==='エネルギーリサイクル'||name==='せいなるはい'){s.deck.push(...moved);s.deck=shuffle(s.deck);}
@@ -2676,12 +2703,12 @@ function openRealNewGoodsSelection(handIndex){
   const targets=document.createElement('div');targets.className='actions';panel.insertBefore(targets,list);panel.insertBefore(targetTitle,targets);
   s.bench.forEach((poke,i)=>{const b=document.createElement('button');b.type='button';b.textContent='🪑 '+(i+1)+'：'+poke.name;b.onclick=()=>{target=i;[...targets.children].forEach((x,j)=>x.setAttribute('aria-pressed',String(i===j)));refresh();};targets.append(b);});
  }
- const {apply,actions}=realCreateEffectActions(panel,()=> (c.name==='ハイパーボール'?costSelected.size===2&&(allowed.size===0||selected.size===1):(c.name==='なかよしポフィン'?true:selected.size>0))&&(c.name!=='ワンダーパッチ'||target!==null),close=>{
+ const {apply,actions}=realCreateEffectActions(panel,()=> (c.name==='ハイパーボール'?costSelected.size===2&&(allowed.size===0||selected.size===1):(['なかよしポフィン','メガシグナル'].includes(c.name)?(c.name==='メガシグナル'?allowed.size===0||selected.size===1:true):selected.size>0))&&(c.name!=='ワンダーパッチ'||target!==null),close=>{
   if(realOpeningState!==s||!realCommitNewGoods(s,handIndex,[...selected],target,[...costSelected])){status.textContent='⚠️ 状態が変わったため処理を中止したよ。';return;}
   close();renderRealOpening();
  });
  panel.insertBefore(actions,list);
- function refresh(){status.textContent='選択中 '+selected.size+' / '+cap+'枚'+(c.name==='ハイパーボール'?' / トラッシュする手札 '+costSelected.size+'/2枚':'')+(c.name==='ワンダーパッチ'?' / 付け先：'+(target===null?'未選択':s.bench[target].name):'');apply.disabled=(c.name==='ハイパーボール'?costSelected.size!==2||(allowed.size>0&&selected.size!==1):(c.name==='なかよしポフィン'?false:selected.size===0))||(c.name==='ワンダーパッチ'&&target===null);buttons.forEach((b,i)=>{b.classList.toggle('real-selection-picked',selected.has(i));b.setAttribute('aria-pressed',String(selected.has(i)));});}
+ function refresh(){status.textContent='選択中 '+selected.size+' / '+cap+'枚'+(c.name==='ハイパーボール'?' / トラッシュする手札 '+costSelected.size+'/2枚':'')+(c.name==='ワンダーパッチ'?' / 付け先：'+(target===null?'未選択':s.bench[target].name):'');apply.disabled=(c.name==='ハイパーボール'?costSelected.size!==2||(allowed.size>0&&selected.size!==1):(c.name==='なかよしポフィン'?false:c.name==='メガシグナル'?(allowed.size>0&&selected.size!==1):selected.size===0))||(c.name==='ワンダーパッチ'&&target===null);buttons.forEach((b,i)=>{b.classList.toggle('real-selection-picked',selected.has(i));b.setAttribute('aria-pressed',String(selected.has(i)));});}
  refresh();panel.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 
