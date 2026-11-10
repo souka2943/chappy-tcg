@@ -799,7 +799,7 @@ function realCoinUntilTails(random=Math.random){
  for(let i=0;i<1000;i++){const result=realCoinFlip(random);results.push(result);if(result==='裏')return {results,heads:i,terminated:true}}
  return {results,heads:1000,terminated:false};
 }
-// β4.5.4.9.3.1: プレイヤーとCPUで同じ連続コイントス計算を使用する。
+// β4.5.5: プレイヤーとCPUで同じ連続コイントス計算を使用する。
 // テストでは乱数を注入し、表・裏の結果とダメージを再現可能にする。
 function realResolveAttackDamage(attack,mode,benchCount=0,random=Math.random){
  let damage=attack.baseDamage,coinNote='',toss=null;
@@ -921,21 +921,38 @@ function realCopyableAttack(attack){
  const mode=realDamageMode(attack);
  return ['normal','coinUntilTails','benchCountBonus','noAttackNextTurn','blockOpponentGoods'].includes(mode)||(mode==='baseOnly'&&realAttackSpecialMode(attack)==='selfDamage');
 }
+// β4.5.5: プレイヤーの通常ワザ・コピーしたワザで共用する効果解決。
+// コピー元のカード名やワザ名はログ用で、効果は選択したワザ定義から処理する。
+function realResolvePlayerAttackEffect(s,attack,{copied=false}={}){
+ const c=s.cpuReal,mode=realDamageMode(attack);
+ const resolved=realResolveAttackDamage(attack,mode,s.bench.length+c.bench.length);
+ if(mode==='blockOpponentGoods')s.cpuGoodsBlockedUntil=s.cpuTurns+1;
+ if(mode==='noAttackNextTurn'){
+  s.realAttackLock??={};
+  s.realAttackLock.player={card:s.active,until:s.playerTurns+1};
+ }
+ c.damage=(c.damage||0)+resolved.damage;
+ let recoilNote='';
+ if(realAttackSpecialMode(attack)==='selfDamage'){
+  const effect=realApplyAttackEffect(attack,{actor:s});
+  if(!effect.applied)throw Error('ワザの反動ダメージを処理できなかったよ');
+  recoilNote='｜反動：'+effect.amount+'ダメージ（'+s.active.name+'）';
+ }else if(!copied){
+  // 通常ワザの回復など、既存の追加効果処理を維持する。
+  realApplyPostAttackEffect(s,attack,s);
+ }
+ return {...resolved,recoilNote,cpuTotal:c.damage};
+}
 function realCommitMetronome(s,index,targetIndex){
  if(!realBasicAttackAllowed(s,index))return false;
  const own=realCardDefinition(s.active)?.attacks[index];
  if(own?.effectKind!=='copyOpponentAttack')return false;
  const target=realCardDefinition(s.cpuReal?.active)?.attacks[targetIndex];
  if(!realCopyableAttack(target))return false;
- const mode=realDamageMode(target),c=s.cpuReal;
- const resolved=realResolveAttackDamage(target,mode,s.bench.length+c.bench.length);
- if(mode==='blockOpponentGoods')s.cpuGoodsBlockedUntil=s.cpuTurns+1;
- if(mode==='noAttackNextTurn'){s.realAttackLock??={};s.realAttackLock.player={card:s.active,until:s.playerTurns+1};}
- c.damage=(c.damage||0)+resolved.damage;
+ const c=s.cpuReal;
  const copyUser=s.active.name,copyTarget=c.active.name;
- let recoilNote='';
- if(realAttackSpecialMode(target)==='selfDamage'){const effect=realApplyAttackEffect(target,{actor:s});if(!effect.applied)throw Error('コピー先の反動ダメージを処理できなかったよ');recoilNote='｜反動：'+effect.amount+'ダメージ（'+copyUser+'）';}
- s.turnLog.unshift('☝️ '+copyUser+'の「ゆびをふる」→ '+copyTarget+'の「'+target.name+'」をコピー！ '+resolved.damage+'ダメージ（CPU累計'+c.damage+'）'+resolved.coinNote+recoilNote);
+ const resolved=realResolvePlayerAttackEffect(s,target,{copied:true});
+ s.turnLog.unshift('☝️ '+copyUser+'の「ゆびをふる」→ '+copyTarget+'の「'+target.name+'」をコピー！ '+resolved.damage+'ダメージ（CPU累計'+resolved.cpuTotal+'）'+resolved.coinNote+resolved.recoilNote);
  realResolveAttackKnockouts(s);
  if(realPlacementCount(s)!==60||cpuRealCount(c)!==60)throw Error('ゆびをふる後のカード保存則に違反');
  s.turnLog=s.turnLog.slice(0,12);
@@ -957,13 +974,9 @@ function realPlayerAttack(s,index){
  const a=realCardDefinition(s.active).attacks[index],c=s.cpuReal;
  const mode=realDamageMode(a),baseOnly=mode==='baseOnly'&&!realAttackSpecialMode(a);
  if(mode==='discardHandEnergy')return false; // 選択式ワザは専用の確定処理のみで実行
- const resolved=realResolveAttackDamage(a,mode,s.bench.length+c.bench.length);
+ const resolved=realResolvePlayerAttackEffect(s,a);
  const {damage,coinNote}=resolved;
- if(mode==='blockOpponentGoods')s.cpuGoodsBlockedUntil=s.cpuTurns+1;
- c.damage=(c.damage||0)+damage;
- if(mode==='noAttackNextTurn'){s.realAttackLock??={};s.realAttackLock.player={card:s.active,until:s.playerTurns+1};}
- s.turnLog.unshift('⚔️ '+s.active.name+'の「'+a.name+'」！ '+damage+'ダメージ（CPU累計'+c.damage+'）'+coinNote+(baseOnly?' ⚠️ 基本ダメージのみ・特殊効果未実装（検証用）':''));
- realApplyPostAttackEffect(s,a,s);
+ s.turnLog.unshift('⚔️ '+s.active.name+'の「'+a.name+'」！ '+damage+'ダメージ（CPU累計'+resolved.cpuTotal+'）'+coinNote+(baseOnly?' ⚠️ 基本ダメージのみ・特殊効果未実装（検証用）':''));
  realResolveAttackKnockouts(s);
  if(realPlacementCount(s)!==60||cpuRealCount(c)!==60)throw Error('攻撃後のカード保存則に違反');
  s.turnLog=s.turnLog.slice(0,12);
@@ -1715,7 +1728,7 @@ function runRealRegression(){
  test('β4.5.4.9.3 さかてにとる：場から離れたら不可',()=>{const s=makeRealOpeningStateFixtureFez();const card=s.active;s.active={name:'ピッピ'};return !realCanFezAbility(s,'player',card);});
  test('β4.5.4.9.3 さかてにとる：CPUも3枚・同ターン再使用不可',()=>{const s=makeRealOpeningStateFixtureFez();const card={name:'キチキギスex'};s.cpuReal={active:card,bench:[],deck:[{name:'a'},{name:'b'},{name:'c'},{name:'d'}],hand:[],turns:3};s.turnSide='cpu';s.cpuFezEligible=true;return realCommitFezAbility(s,'cpu',card)===3&&s.cpuReal.hand.length===3&&realCommitFezAbility(s,'cpu',card)===-1;});
  test('β4.5.4.9.3 さかてにとる：相手の番には不可',()=>{const s=makeRealOpeningStateFixtureFez();s.turnSide='cpu';return !realCanFezAbility(s,'player',s.active);});
- // β4.5.4.9.3.1: 反動きぜつと同時きぜつの回帰テスト（fixtureに収録IDを付与）（本番の対戦状態は変更しない）。
+ // β4.5.5: 反動きぜつと同時きぜつの回帰テスト（fixtureに収録IDを付与）（本番の対戦状態は変更しない）。
  const metronomeKOMock=()=>{
   const card=(name)=>{const d=realAttackRegistry.get(name);return {name,category:'pokemon',...(d?{set:d.set,number:d.number}:{})}},energy=()=>({name:'基本超エネルギー',category:'energy'});
   const s={active:card('ピクシー'),activeStack:[card('ピッピ')],activeEnergy:[energy(),energy()],damage:90,
@@ -1820,7 +1833,7 @@ function runRealRegression(){
  test('検証攻撃：メガガルーラのコイントスを許可',()=>realDamageMode(realAttackRegistry.get('メガガルーラex').attacks[0])==='coinUntilTails');
  test('コイントス：裏で終了',()=>realCoinUntilTails(()=>0.9).heads===0);
  test('コイントス：表2回→裏で終了',()=>{const seq=[0.1,0.2,0.9];const x=realCoinUntilTails(()=>seq.shift());return x.heads===2&&x.results.join(',')==='表,表,裏'});
- // β4.5.4.9.3.1: 共通ダメージ計算がプレイヤー側にも適用されることを確認。
+ // β4.5.5: 共通ダメージ計算がプレイヤー側にも適用されることを確認。
  test('マシンガンコンボ：裏1回なら200',()=>{const a=realAttackRegistry.get('メガガルーラex').attacks[0],r=realResolveAttackDamage(a,realDamageMode(a),0,()=>0.9);return r.damage===200&&r.toss.heads===0&&r.coinNote.includes('裏')});
  test('マシンガンコンボ：表2回→裏なら300',()=>{const a=realAttackRegistry.get('メガガルーラex').attacks[0],seq=[0.1,0.2,0.9],r=realResolveAttackDamage(a,realDamageMode(a),0,()=>seq.shift());return r.damage===300&&r.toss.results.join('→')==='表→表→裏'&&r.coinNote.includes('追加100')});
  test('マシンガンコンボ：表1回→裏なら250',()=>{const a=realAttackRegistry.get('メガガルーラex').attacks[0],seq=[0.1,0.9],r=realResolveAttackDamage(a,realDamageMode(a),0,()=>seq.shift());return r.damage===250});
