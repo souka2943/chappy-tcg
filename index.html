@@ -1715,10 +1715,14 @@ function inspectRealState(s){
 }
 let realRegressionRunning=false;
 function runRealRegression(){
+ // Run legacy deck-specific fixtures under their intended assignment, then restore the user's selection.
+ const withAssignment=(swapped,fn)=>{const previous=realDeckSwapped;realDeckSwapped=swapped;try{return fn()}finally{realDeckSwapped=previous}};
  const results=[];const test=(name,fn)=>{try{if(!fn())throw Error('条件不成立');results.push({name,pass:true})}catch(e){results.push({name,pass:false,error:e.message})}};
  // β4.5.9.2 たね判定の回帰：自分側のラティアスexが配置可能であることを確認。
- test('β4.5.9.2 ラティアスex：自分側のたね判定',()=>!realDeckSwapped&&isRealBasic('ラティアスex'));
- test('β4.5.9.2 キチキギスex：自分側のたね判定',()=>!realDeckSwapped&&isRealBasic('キチキギスex'));
+ test('β4.5.9.2 ラティアスex：自分側のたね判定',()=>withAssignment(false,()=>isRealBasic('ラティアスex')));
+ test('β4.5.9.2 キチキギスex：自分側のたね判定',()=>withAssignment(false,()=>isRealBasic('キチキギスex')));
+ test('β4.5.9.2 入れ替え時：自分のゴビットはたね',()=>withAssignment(true,()=>isRealBasic('ゴビット')));
+ test('β4.5.9.2 入れ替え時：CPUのピッピはたね',()=>withAssignment(true,()=>cpuIsBasic({name:'ピッピ',category:'pokemon'})));
  // β4.5.9.2 ミステリーガーデン：カード総数・使用制限・公式Q&A境界を検証。
  const gardenTest=(hand,deck,bench=[],active={name:'ピッピ',category:'pokemon'})=>({firstSide:'player',placementDone:true,turnSide:'player',playerTurns:2,attackedThisTurn:false,stadium:{card:{name:'ミステリーガーデン'}},active,bench,hand:hand.map(name=>({name,category:name.includes('エネルギー')?'energy':'goods'})),deck:Array.from({length:deck},(_,i)=>({name:'山札'+i,category:'goods'})),trash:[],turnLog:[],cpuReal:{hand:[],deck:[],bench:[],trash:[]}});
  test('β4.5.9.2 ガーデン：超1匹・手札1枚から1枚引く',()=>{const x=gardenTest(['基本超エネルギー'],3);const r=realGardenUse(x,'player',0);return r.ok&&r.drawn===1&&x.hand.length===1&&x.trash.length===1&&x.deck.length===2;});
@@ -1830,9 +1834,9 @@ function runRealRegression(){
  test('CPUグッズ：進化元不在ならハイパーボール温存',()=>{const c=makeCpuRealOpening();c.active={name:'ニャースex'};c.hand=[{name:'ハイパーボール',category:'goods'},{name:'ポケパッド',category:'goods'},{name:'ラッキーメット',category:'tool'}];c.deck=[{name:'メガゴルーグex',category:'pokemon'}];return !cpuRealUseUltraBall(c,[])&&c.trash.length===0;});
  test('β4.5.9.2 初手：メガガルーラexを最優先',()=>{const h=[{name:'ニャースex',category:'pokemon'},{name:'ラティアスex',category:'pokemon'},{name:'メガガルーラex',category:'pokemon'}];const rank=n=>n==='メガガルーラex'?100:n==='ラティアスex'?70:n==='ゴビット'?60:n==='ニャースex'?0:40;return h.sort((a,b)=>rank(b.name)-rank(a.name))[0].name==='メガガルーラex';});
  test('β4.5.9.2 ニャースex：ベンチあり・支援不要なら温存',()=>{const c=makeCpuRealOpening();c.active={name:'メガガルーラex'};c.bench=[{name:'ゴビット'}];c.hand=[{name:'ニャースex',category:'pokemon'},{name:'フウとランの修行',category:'support'}];return !!cpuMeowthDeployReason(c)&&cpuRealDeploy(c,[])===0;});
- test('β4.5.9.2 ニャースex：手札事故なら展開',()=>{const c=makeCpuRealOpening();c.active={name:'ゴビット'};c.bench=[];c.hand=[{name:'ニャースex',category:'pokemon'}];return cpuMeowthDeployReason(c)===null&&cpuRealDeploy(c,[])===1;});
- test('β4.5.9.2 ニャースex：ベンチ0なら支援不要でも緊急展開',()=>{const c=makeCpuRealOpening();c.active={name:'キチキギスex'};c.bench=[];c.hand=[{name:'ニャースex',category:'pokemon'},{name:'フウとランの修行',category:'support'}];return cpuMeowthDeployReason(c)===null&&cpuRealDeploy(c,[])===1&&c.bench[0].name==='ニャースex';});
- test('β4.5.9.2 ニャースex：他のたねを優先してサイド2枚リスクを避ける',()=>{const c=makeCpuRealOpening();c.active={name:'キチキギスex'};c.bench=[];c.hand=[{name:'ニャースex',category:'pokemon'},{name:'ゴビット',category:'pokemon'},{name:'フウとランの修行',category:'support'}];return cpuRealDeploy(c,[])===1&&c.bench[0].name==='ゴビット'&&c.hand.some(x=>x.name==='ニャースex');});
+ test('β4.5.9.2 ニャースex：手札事故なら展開',()=>withAssignment(false,()=>{const c=makeCpuRealOpening();c.active={name:'ゴビット'};c.bench=[];c.hand=[{name:'ニャースex',category:'pokemon'}];return cpuMeowthDeployReason(c)===null&&cpuRealDeploy(c,[])===1;}));
+ test('β4.5.9.2 ニャースex：ベンチ0なら支援不要でも緊急展開',()=>withAssignment(false,()=>{const c=makeCpuRealOpening();c.active={name:'キチキギスex'};c.bench=[];c.hand=[{name:'ニャースex',category:'pokemon'},{name:'フウとランの修行',category:'support'}];return cpuMeowthDeployReason(c)===null&&cpuRealDeploy(c,[])===1&&c.bench[0].name==='ニャースex';}));
+ test('β4.5.9.2 ニャースex：他のたねを優先してサイド2枚リスクを避ける',()=>withAssignment(false,()=>{const c=makeCpuRealOpening();c.active={name:'キチキギスex'};c.bench=[];c.hand=[{name:'ニャースex',category:'pokemon'},{name:'ゴビット',category:'pokemon'},{name:'フウとランの修行',category:'support'}];return cpuRealDeploy(c,[])===1&&c.bench[0].name==='ゴビット'&&c.hand.some(x=>x.name==='ニャースex');}));
  test('β4.5.9.2 ニャースex：複数枚でも温存処理は一括',()=>{const c=makeCpuRealOpening();c.active={name:'メガガルーラex'};c.bench=[{name:'ゴビット'}];c.hand=[{name:'ニャースex',category:'pokemon'},{name:'ニャースex',category:'pokemon'},{name:'フウとランの修行',category:'support'}];const n=cpuRealDeploy(c,[]);return n===0&&c.hand.filter(x=>x.name==='ニャースex').length===2;});
  test('β4.5.9.2 ギリー：ベンチ0・手札不足ではドローを優先しボスを重複取得しない',()=>{const c=makeCpuRealOpening();c.active={name:'キチキギスex'};c.bench=[];c.hand=[{name:'ギリー',category:'support'},{name:'ニャースex',category:'pokemon'}];c.deck=[{name:'ボスの指令',category:'support'},{name:'ボスの指令',category:'support'},{name:'フウとランの修行',category:'support'},{name:'伝説の溶岩洞(右)',category:'stadium'}];c.turns=2;c.supportUsedThisTurn=false;return cpuRealUseSupportChoices(c,[])&&c.hand.some(x=>x.name==='フウとランの修行')&&c.hand.filter(x=>x.name==='ボスの指令').length<=1;});
  test('β4.5.9.2 ハイパーボール：ニャースex前ならラティアス優先',()=>{const c=makeCpuRealOpening();c.active={name:'ニャースex'};c.bench=[{name:'ゴビット'}];c.hand=[];c.deck=[{name:'メガゴルーグex',category:'pokemon'},{name:'ラティアスex',category:'pokemon'}];return cpuRealUltraBallTarget(c)?.card.name==='ラティアスex';});
