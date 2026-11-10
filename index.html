@@ -1715,9 +1715,9 @@ function runRealRegression(){
  test('β4.5.4.9.3 さかてにとる：場から離れたら不可',()=>{const s=makeRealOpeningStateFixtureFez();const card=s.active;s.active={name:'ピッピ'};return !realCanFezAbility(s,'player',card);});
  test('β4.5.4.9.3 さかてにとる：CPUも3枚・同ターン再使用不可',()=>{const s=makeRealOpeningStateFixtureFez();const card={name:'キチキギスex'};s.cpuReal={active:card,bench:[],deck:[{name:'a'},{name:'b'},{name:'c'},{name:'d'}],hand:[],turns:3};s.turnSide='cpu';s.cpuFezEligible=true;return realCommitFezAbility(s,'cpu',card)===3&&s.cpuReal.hand.length===3&&realCommitFezAbility(s,'cpu',card)===-1;});
  test('β4.5.4.9.3 さかてにとる：相手の番には不可',()=>{const s=makeRealOpeningStateFixtureFez();s.turnSide='cpu';return !realCanFezAbility(s,'player',s.active);});
- // β4.5.4.9.3: 反動きぜつと同時きぜつの回帰テスト（本番の対戦状態は変更しない）。
+ // β4.5.4.9.3.1: 反動きぜつと同時きぜつの回帰テスト（fixtureに収録IDを付与）（本番の対戦状態は変更しない）。
  const metronomeKOMock=()=>{
-  const card=(name)=>({name,category:'pokemon'}),energy=()=>card('基本超エネルギー');
+  const card=(name)=>{const d=realAttackRegistry.get(name);return {name,category:'pokemon',...(d?{set:d.set,number:d.number}:{})}},energy=()=>({name:'基本超エネルギー',category:'energy'});
   const s={active:card('ピクシー'),activeStack:[card('ピッピ')],activeEnergy:[energy(),energy()],damage:90,
    bench:[card('ピッピ')],benchStacks:[[]],benchEnergy:[[]],benchDamage:[0],benchEnteredTurns:[1],
    hand:[],deck:[],prizes:[card('サイド1'),card('サイド2'),card('サイド3')],trash:[],turnSide:'player',turnLog:[],gameOver:null,
