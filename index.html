@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="ja"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>ちゃっぴーTCG β4.5.9.2</title>
+<html lang="ja"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>ちゃっぴーTCG β4.5.9.3</title>
 <style>
 *{box-sizing:border-box}body{margin:0 auto;max-width:780px;padding:14px;background:#10192c;color:#fff;font-family:system-ui,sans-serif}h1{font-size:23px}h2{font-size:17px;margin:0 0 9px}section{background:#20314c;border-radius:14px;padding:13px;margin:11px 0}button{background:#ffd063;color:#282318;border:0;border-radius:10px;padding:10px;font-weight:650;margin:3px;cursor:pointer}button:disabled{opacity:.4;cursor:default}.card{background:#365273;color:#fff;border:2px solid transparent;border-radius:10px;text-align:left;min-width:110px;padding:10px;display:inline-flex;flex-direction:column;gap:4px}.selected{border-color:#ffd063}.slot{border:1px dashed #8196b1;border-radius:10px;padding:7px;min-height:75px;display:flex;justify-content:center;align-items:center}.bench{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.hand,.actions,.counts{display:flex;gap:5px;flex-wrap:wrap}.counts{gap:13px;font-weight:650}.muted,.small{color:#bbcee5;font-size:12px}.log{white-space:pre-wrap;color:#ffe29a;min-height:40px}.enemy{background:#46374e;border-radius:10px;padding:10px;margin:5px 0}.notice{color:#ffe29a;font-weight:700}.hide{display:none!important}.coin{font-size:48px;text-align:center;margin:10px}.info{border-left:3px solid #ffd063;padding-left:9px}.trashlist{display:grid;gap:6px;margin-top:8px}.trashrow{background:#304763;color:#fff;text-align:left;width:100%;margin:0}.tabon{outline:2px solid #fff}.retreathelp{font-size:12px;color:#ffe29a}.deckrow{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #52627c;padding:7px 0}.deckrow .actions{flex-shrink:0}.deckrow button{min-width:38px}.searchrow{display:flex;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid #50627c;padding:6px 0}.searchrow button{flex-shrink:0}.searchrow .muted{font-size:12px}.searchrow.dim{opacity:.65}.deckok{color:#a8ffcf}.deckbad{color:#ffd29a}
 
@@ -49,7 +49,7 @@
 .real-selection-card:disabled{opacity:.57}
 @media(min-width:560px){.real-selection-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style></head><body>
-<h1>⚡ちゃっぴーTCG β4.5.9.2</h1><p class="muted">🗃️ カード定義・収録情報・確認状況・レギュレーション判定の土台を追加。カード効果は検証用の仮データ。</p><p class="muted">🃏 自分・CPUのデッキを別々に構築・保存。カードの能力はすべて仮データです。</p>
+<h1>⚡ちゃっぴーTCG β4.5.9.3</h1><p class="muted">🗃️ カード定義・収録情報・確認状況・レギュレーション判定の土台を追加。カード効果は検証用の仮データ。</p><p class="muted">🃏 自分・CPUのデッキを別々に構築・保存。カードの能力はすべて仮データです。</p>
 <nav aria-label="画面切替" class="screen-nav"><button id="navHome">🏠 ホーム</button><button id="navDeck">🃏 デッキ編集</button><button id="navBank">🗃️ データバンク</button><button id="navBattle">⚔️ CPU対戦</button></nav>
 <main id="homeScreen"><section><h2>🏠 ホーム</h2><p>画面を選んでね。保存したデッキはCPU対戦開始時に読み込むよ。</p><div class="home-tile">🃏 デッキ編集：自分用・CPU用を保存</div><div class="home-tile">⚔️ CPU対戦：最新の保存デッキで新しい対戦を開始</div><div class="home-tile">🗃️ カードデータバンク：検索・詳細・収録情報を確認</div><p class="muted">複数デッキスロットと対戦前のデッキ選択は将来実装予定。現時点では既存の自分用・CPU用の2デッキを維持するよ。</p></section></main>
 <main class="screen-hidden" id="deckScreen"><section id="deckEditor"><h2>🃏 デッキ構築（β2.7）</h2><p class="muted">自分とCPUのデッキを個別に編集・保存できるよ。通常カードは同名最大4枚、基本エネルギーは上限なし。仮カードのみ。</p><div class="actions"><button id="deckPlayerTab">👤 自分用</button><button id="deckCpuTab">🤖 CPU用</button></div><p class="notice" id="deckTotal"></p><div id="deckRows"></div><div class="actions"><button id="deckSave">💾 デッキを保存</button><button id="deckDefault">↩️ 初期デッキに戻す</button></div><p aria-live="polite" class="muted" id="deckMessage"></p><p class="muted">保存済みの構築は次の「新しい対戦」から反映。保存先はこのブラウザのローカルストレージ。編集しても保存するまでは対戦に反映されないよ。</p></section>
@@ -860,7 +860,7 @@ function realTakePrizes(s,count){
 function realCpuKnockout(s){
  if(s.turnSide==='player')s.cpuFezEligible=true;
  const c=s.cpuReal,def=realCardDefinition(c.active),name=c.active.name;
- c.trash.push(c.active,...c.activeStack,...c.activeEnergy);
+ realDiscardHelmet(c,c.active);c.trash.push(c.active,...c.activeStack,...c.activeEnergy);
  c.active=null;c.activeStack=[];c.activeEnergy=[];c.damage=0;
  const count=realTakePrizes(s,def?.prizes||1);
  s.turnLog.unshift('🏆 '+name+'がきぜつ！サイド'+count+'枚取得（自分の残り'+s.prizes.length+'枚）');
@@ -879,7 +879,7 @@ function realResolveAttackKnockouts(s){
  if(cpuKO){
   if(s.turnSide==='player')s.cpuFezEligible=true;
   const def=realCardDefinition(c.active),name=c.active.name;
-  c.trash.push(c.active,...c.activeStack,...c.activeEnergy);
+  realDiscardHelmet(c,c.active);c.trash.push(c.active,...c.activeStack,...c.activeEnergy);
   c.active=null;c.activeStack=[];c.activeEnergy=[];c.damage=0;
   const n=realTakePrizes(s,def?.prizes||1);
   s.turnLog.unshift('🏆 '+name+'がきぜつ！サイド'+n+'枚取得');
@@ -887,7 +887,7 @@ function realResolveAttackKnockouts(s){
  if(playerKO){
   if(s.turnSide==='cpu')s.stampEligible=true;
   const def=realCardDefinition(s.active),name=s.active.name;
-  s.trash.push(s.active,...s.activeStack,...s.activeEnergy);
+  realDiscardHelmet(s,s.active);s.trash.push(s.active,...s.activeStack,...s.activeEnergy);
   s.active=null;s.activeStack=[];s.activeEnergy=[];s.damage=0;
   const n=realCpuTakePrizes(s,def?.prizes||1);
   s.turnLog.unshift('🤖 '+name+'がきぜつ！CPUがサイド'+n+'枚取得');
@@ -923,7 +923,7 @@ function realApplyPostAttackEffect(s,attack,actor){
 function realReturnAttackUserToHand(s,side='player'){
  const actor=side==='player'?s:s.cpuReal;
  if(!actor?.active)return false;
- const returned=[actor.active,...(actor.activeStack||[]),...(actor.activeEnergy||[])];
+ realDiscardHelmet(actor,actor.active);const returned=[actor.active,...(actor.activeStack||[]),...(actor.activeEnergy||[])];
  actor.hand.push(...returned);
  actor.active=null;actor.activeStack=[];actor.activeEnergy=[];actor.damage=0;
  if(side==='player'){
@@ -965,7 +965,7 @@ function realResolvePlayerAttackEffect(s,attack,{copied=false}={}){
   s.realAttackLock??={};
   s.realAttackLock.player={card:s.active,until:s.playerTurns+1};
  }
- c.damage=(c.damage||0)+resolved.damage;
+ c.damage=(c.damage||0)+resolved.damage;realHelmetOnDamage(s,'cpu',resolved.damage,c.active);
  let recoilNote='';
  if(realAttackSpecialMode(attack)==='selfDamage'){
   const effect=realApplyAttackEffect(attack,{actor:s});
@@ -1211,7 +1211,7 @@ function makeCpuRealOpening(){
  const basics=hand.map((x,i)=>({x,i})).filter(o=>cpuIsBasic(o.x));const rank=n=>n==='メガガルーラex'?100:n==='ラティアスex'?70:n==='ゴビット'?60:n==='ニャースex'?0:40;basics.sort((a,b)=>rank(b.x.name)-rank(a.x.name)||a.i-b.i);const active=hand.splice(basics[0].i,1)[0];
  return {deck,hand,prizes,active,bench:[],trash:[],mulligans,turns:0,deckOut:false,activeEnergy:[],benchEnergy:[],energyAttachedThisTurn:false,supportUsedThisTurn:false,activeStack:[],benchStacks:[],activeEnteredTurn:0,benchEnteredTurns:[],damage:0,benchDamage:[]};
 }
-function cpuRealCount(c){return (realOpeningState?.stadium?.owner==='cpu'&&realOpeningState?.cpuReal===c?realStadiumFieldCards(realOpeningState.stadium).length:0)+c.deck.length+c.hand.length+c.prizes.length+(c.active?1:0)+c.bench.length+c.trash.length+(c.activeEnergy||[]).length+(c.benchEnergy||[]).reduce((n,a)=>n+a.length,0)+(c.activeStack||[]).length+(c.benchStacks||[]).reduce((n,a)=>n+a.length,0)}
+function cpuRealCount(c){return realHelmetCount(c)+(realOpeningState?.stadium?.owner==='cpu'&&realOpeningState?.cpuReal===c?realStadiumFieldCards(realOpeningState.stadium).length:0)+c.deck.length+c.hand.length+c.prizes.length+(c.active?1:0)+c.bench.length+c.trash.length+(c.activeEnergy||[]).length+(c.benchEnergy||[]).reduce((n,a)=>n+a.length,0)+(c.activeStack||[]).length+(c.benchStacks||[]).reduce((n,a)=>n+a.length,0)}
 function inspectCpuReal(c){if(!c)return ['CPU盤面が未作成'];const issues=[];if(cpuRealCount(c)!==60)issues.push('CPU合計が60枚ではない');if(!c.active&&!realOpeningState?.gameOver)issues.push('CPUバトル場が空');if(c.bench.length>5)issues.push('CPUベンチが6匹以上');if(!Array.isArray(c.activeEnergy)||!Array.isArray(c.benchEnergy)||c.benchEnergy.length!==c.bench.length)issues.push('CPUエネルギー配列が不正');if(c.prizes.length>6)issues.push('CPUサイドが6枚超');if(!Array.isArray(c.activeStack)||!Array.isArray(c.benchStacks)||c.benchStacks.length!==c.bench.length||!Array.isArray(c.benchEnteredTurns)||c.benchEnteredTurns.length!==c.bench.length)issues.push('CPU進化配列が不正');return issues}
 // β3.5: 共通HP表示。蓄積ダメージを残りHPへ変換し、上限と下限を保証する。
 function realHpView(card,damage){
@@ -1236,7 +1236,7 @@ function renderCpuReal(){
  const activeRoot=document.getElementById('cpuRealActive'),benchRoot=document.getElementById('cpuRealBench');
  if(activeRoot)activeRoot.replaceChildren();if(benchRoot)benchRoot.replaceChildren();
  if(!c){root.textContent='未開始：自分の初手を配るとCPU側も初期配置するよ。';return}
- const cpuCard=(card,energies)=>{const d=document.createElement('div');d.className='real-card';d.style.cssText='padding:14px;border:1px solid #7185a0;border-radius:12px;background:#34506d;min-width:130px';d.textContent=card.name+' / 🔮 '+energies.length+'枚';realAppendHp(d,card,(card===c.active?c.damage:c.benchDamage[c.bench.indexOf(card)])||0);return d};
+ const cpuCard=(card,energies)=>{const d=document.createElement('div');d.className='real-card';d.style.cssText='padding:14px;border:1px solid #7185a0;border-radius:12px;background:#34506d;min-width:130px';d.textContent=card.name+' / 🔮 '+energies.length+'枚'+(realHelmetOf(card)?' / 🪖 ラッキーメット':'');realAppendHp(d,card,(card===c.active?c.damage:c.benchDamage[c.bench.indexOf(card)])||0);return d};
  if(activeRoot){if(c.active)activeRoot.append(cpuCard(c.active,c.activeEnergy));else activeRoot.textContent='きぜつ（バトル場なし）';}
  if(benchRoot){c.bench.forEach((p,i)=>benchRoot.append(cpuCard(p,c.benchEnergy[i]||[])));if(!c.bench.length)benchRoot.textContent='ベンチなし'}
  root.textContent='🤖 バトル場：'+(c.active?.name||'なし')+'（超エネルギー '+c.activeEnergy.length+'枚） / ベンチ '+c.bench.length+'匹'+(c.bench.length?'［'+c.bench.map((p,i)=>p.name+'：'+c.benchEnergy[i].length+'枚').join('、')+'］':'')+' / 手札 '+c.hand.length+'枚（非公開） / 山札 '+c.deck.length+'枚 / サイド '+c.prizes.length+'枚（非公開） / トラッシュ '+c.trash.length+'枚 / 合計 '+cpuRealCount(c)+'枚 / マリガン '+c.mulligans+'回';
@@ -1351,7 +1351,7 @@ function drawRealOpening(){
  if(hand.length!==7||prizes.length!==6||deck.length!==47)throw Error('実カードの初期枚数が不正');
  return {cpuReal:makeCpuRealOpening(),hand,prizes,deck,mulligans,stadium:null,cpuFezEligible:false,active:null,bench:[],placementHistory:[],placementDone:false,firstSide:null,turnSide:null,playerTurns:0,cpuTurns:0,turnLog:[],deckOut:false,energyAttachedThisTurn:false,selectedEnergyIndex:null,selectedEvolutionIndex:null,retreatedThisTurn:false,retreatSelecting:false,supportUsedThisTurn:false,stampEligible:false,stampTestOverride:false,selectedSupportIndex:null,gameOver:null,pendingPromotion:false,attackedThisTurn:false,playerDamage:0,cpuDamage:0,trash:[],activeEnergy:[],benchEnergy:[],activeEnteredTurn:0,benchEnteredTurns:[],activeStack:[],benchStacks:[],damage:0,benchDamage:[]};
 }
-function realPlacementCount(s){return (s.stadium?.owner==='player'?realStadiumFieldCards(s.stadium).length:0)+s.hand.length+s.prizes.length+s.deck.length+(s.active?1:0)+s.bench.length+(s.activeStack||[]).length+(s.benchStacks||[]).reduce((n,a)=>n+a.length,0)+(s.activeEnergy||[]).length+(s.benchEnergy||[]).reduce((n,a)=>n+a.length,0)+(s.trash||[]).length}
+function realPlacementCount(s){return realHelmetCount(s)+(s.stadium?.owner==='player'?realStadiumFieldCards(s.stadium).length:0)+s.hand.length+s.prizes.length+s.deck.length+(s.active?1:0)+s.bench.length+(s.activeStack||[]).length+(s.benchStacks||[]).reduce((n,a)=>n+a.length,0)+(s.activeEnergy||[]).length+(s.benchEnergy||[]).reduce((n,a)=>n+a.length,0)+(s.trash||[]).length}
 function placeRealBasic(i){
  const s=realOpeningState;if(!s||s.placementDone)return;
  const c=s.hand[i];if(!c||!isRealBasic(c.name))return;
@@ -1415,6 +1415,59 @@ function openRealActionModal(kind){
 document.getElementById('realActionDismiss').onclick=cancelRealActionModal;
 document.getElementById('realActionBackdrop').onclick=cancelRealActionModal;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.getElementById('realActionModal').hidden)cancelRealActionModal()});
+
+// β4.5.9.3: ポケギア3.0・ラッキーメット。ポケモン個体をキーに装備を管理する。
+const realLuckyHelmets=new WeakMap();
+function realHelmetOf(card){return card&&realLuckyHelmets.get(card)||null;}
+function realTransferHelmet(from,to){const tool=realHelmetOf(from);if(tool){realLuckyHelmets.delete(from);realLuckyHelmets.set(to,tool);}}
+function realDiscardHelmet(owner,card){const tool=realHelmetOf(card);if(tool){owner.trash.push(tool);realLuckyHelmets.delete(card);}}
+function realHelmetCount(owner){return (owner.active&&realHelmetOf(owner.active)?1:0)+(owner.bench||[]).filter(x=>realHelmetOf(x)).length;}
+function realCanUseGear(s,card){return !!s&&s.placementDone&&s.firstSide&&s.turnSide==='player'&&!s.attackedThisTurn&&!s.gameOver&&!s.deckOut&&!s.pendingPromotion&&card?.name==='ポケギア3.0'&&!realPlayerGoodsBlocked(s);}
+function realCommitGear(s,handIndex,topIndex=-1){
+ const card=s?.hand?.[handIndex];if(!realCanUseGear(s,card))return false;
+ const top=s.deck.slice(-7),supports=top.map((c,i)=>({c,i})).filter(x=>x.c.category==='support');
+ if(topIndex!==-1&&!supports.some(x=>x.i===topIndex))return false;
+ s.trash.push(s.hand.splice(handIndex,1)[0]);
+ let chosen=null;
+ if(topIndex>=0){const original=s.deck.length-top.length+topIndex;chosen=s.deck.splice(original,1)[0];s.hand.push(chosen);}
+ s.deck=shuffle(s.deck);s.turnLog.unshift('🔎 ポケギア3.0：上から'+top.length+'枚確認'+(chosen?'、'+chosen.name+'を手札へ':'、サポートは選ばず終了'));
+ if(realPlacementCount(s)!==60)throw Error('ポケギア3.0：カード保存則違反');return true;
+}
+function openRealGearSelection(index){
+ const s=realOpeningState;if(!realCanUseGear(s,s?.hand[index]))return;
+ const panel=document.getElementById('realMaxRodPanel');panel.hidden=false;panel.replaceChildren();
+ const h=document.createElement('h3');h.textContent='🔎 ポケギア3.0：山札の上から7枚';panel.append(h);
+ const hint=document.createElement('p');hint.className='muted';hint.textContent='サポートを最大1枚選択。選ばない場合も使用可能。残りを山札に戻して切るよ。';panel.append(hint);
+ const top=s.deck.slice(-7);let selected=-1;const buttons=[];
+ top.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='real-selection-card';b.disabled=c.category!=='support';b.onclick=()=>{selected=selected===i?-1:i;refresh();};panel.append(b);buttons.push({b,c,i});});
+ const actions=document.createElement('div');actions.className='actions';panel.append(actions);
+ const apply=document.createElement('button');apply.type='button';apply.textContent='効果を確定';actions.append(apply);
+ const cancel=document.createElement('button');cancel.type='button';cancel.textContent='キャンセル';actions.append(cancel);
+ const close=()=>{panel.hidden=true;panel.replaceChildren();renderRealOpening();};
+ apply.onclick=()=>{if(realOpeningState!==s||!realCommitGear(s,index,selected))return;close();realTraceRecord('ポケギア3.0');};cancel.onclick=close;
+ function refresh(){buttons.forEach(({b,c,i})=>{b.textContent=(selected===i?'☑ ':'')+c.name+(c.category==='support'?' / 選択可能':' / 対象外');});}
+ refresh();panel.scrollIntoView({block:'nearest'});
+}
+function realCanAttachHelmet(s,card){return !!s&&s.placementDone&&s.firstSide&&s.turnSide==='player'&&!s.attackedThisTurn&&!s.gameOver&&!s.deckOut&&!s.pendingPromotion&&card?.name==='ラッキーメット'&&!!s.active;}
+function realCommitHelmet(s,handIndex,location,index=0){
+ const card=s?.hand?.[handIndex],target=location==='active'?s.active:s.bench[index];
+ if(!realCanAttachHelmet(s,card)||!target||realHelmetOf(target))return false;
+ realLuckyHelmets.set(target,s.hand.splice(handIndex,1)[0]);s.turnLog.unshift('🪖 ラッキーメットを'+target.name+'に付けた');
+ if(realPlacementCount(s)!==60)throw Error('ラッキーメット：カード保存則違反');return true;
+}
+function openRealHelmetSelection(index){
+ const s=realOpeningState;if(!realCanAttachHelmet(s,s?.hand[index]))return;
+ const panel=document.getElementById('realMaxRodPanel');panel.hidden=false;panel.replaceChildren();
+ const h=document.createElement('h3');h.textContent='🪖 ラッキーメット：装備先を選択';panel.append(h);
+ [{card:s.active,zone:'active',i:0},...s.bench.map((card,i)=>({card,zone:'bench',i}))].forEach(t=>{const b=document.createElement('button');b.type='button';b.className='real-selection-card';b.disabled=!!realHelmetOf(t.card);b.textContent=t.card.name+(b.disabled?' / どうぐ装備済み':' / 装備可能');b.onclick=()=>{if(realCommitHelmet(s,index,t.zone,t.i)){panel.hidden=true;renderRealOpening();realTraceRecord('ラッキーメットを装備');}};panel.append(b);});
+ const cancel=document.createElement('button');cancel.type='button';cancel.textContent='キャンセル';cancel.onclick=()=>{panel.hidden=true;renderRealOpening()};panel.append(cancel);panel.scrollIntoView({block:'nearest'});
+}
+function realHelmetOnDamage(s,side,damage,target){
+ if(damage<=0||!realHelmetOf(target))return 0;
+ const owner=side==='player'?s:s.cpuReal,draw=Math.min(2,owner.deck.length);
+ owner.hand.push(...owner.deck.splice(-draw));s.turnLog.unshift('🪖 '+target.name+'のラッキーメット：'+draw+'枚ドロー');return draw;
+}
+
 function renderRealOpening(){
  const s=realOpeningState,hand=document.getElementById('realOpeningHand'),list=document.getElementById('realOpeningDeck');
  realRenderStadium(s);
@@ -1425,8 +1478,8 @@ function renderRealOpening(){
  if(!s){document.getElementById('realOpeningCounts').textContent='';renderCpuReal();renderRealTurn();renderRealAttackPrep();realRenderPromotion();return}
  document.getElementById('realOpeningStatus').textContent=s.placementDone?'✅ 初期配置完了！ 自分の番には手札のたねポケモンをベンチに出せるよ。':s.active?'🌱 ベンチへ追加するか、配置完了を押してね。':'🌱 手札からバトル場に出すたねポケモンを選んでね。';
  document.getElementById('realOpeningCounts').textContent='手札 '+s.hand.length+'枚 / バトル場 '+(s.active?1:0)+'枚 / ベンチ '+s.bench.length+'枚 / 進化元カード '+(s.activeStack.length+s.benchStacks.reduce((n,a)=>n+a.length,0))+'枚 / 付属エネルギー '+(s.activeEnergy.length+s.benchEnergy.reduce((n,a)=>n+a.length,0))+'枚 / トラッシュ '+s.trash.length+'枚 / サイド '+s.prizes.length+'枚（非公開） / 山札 '+s.deck.length+'枚 / 合計 '+realPlacementCount(s)+'枚 / マリガン '+s.mulligans+'回';
- s.hand.forEach((c,i)=>{const b=document.createElement('button');b.className='card';b.type='button';const energyOK=canSelectRealEnergy(s,c),benchOK=canPlayRealBasicToBench(s,c),evolutionOK=canSelectRealEvolution(s,c),supportOK=canSelectRealSupport(s,c),rodOK=canUseRealMaxRod(s,c),newGoodsOK=canUseRealNewGoods(s,c),stampOK=canUseRealStamp(s,c),stadiumOK=realStadiumCanPlay(s,'player',c);b.textContent=c.name+(realLavaHalf(c)?'（'+realLavaHalf(c)+'）':'')+(isRealBasic(c.name)?' 🌱':'')+(s.selectedEnergyIndex===i||s.selectedEvolutionIndex===i||s.selectedSupportIndex===i?' ✅ 選択中':'')+' / '+({pokemon:'ポケモン',goods:'グッズ',support:'サポート',stadium:'スタジアム',energy:'エネルギー',tool:'ポケモンのどうぐ'}[c.category]||'種類未登録');b.disabled=s.placementDone?!(energyOK||benchOK||evolutionOK||supportOK||rodOK||newGoodsOK||stampOK||stadiumOK):!isRealBasic(c.name)||!!s.active&&s.bench.length>=5;if(c.category==='support'&&!supportOK){const reason=realSupportBlockReason(s,c);b.textContent+=' / ⛔ '+reason;}if(isRealAttachableEnergy(c)&&!energyOK){b.textContent+=' / ⛔ '+realEnergyBlockReason(s,c);}b.title=s.placementDone?(benchOK?'タップしてベンチに出す':energyOK?'タップして手張り先を選択':evolutionOK?'進化先を選択':supportOK?'サポートを選択':rodOK?'つりざおMAXを使用':newGoodsOK?'グッズを使用':stampOK?'アンフェアスタンプを使用':stadiumOK?'スタジアムを出す':c.category==='support'?realSupportBlockReason(s,c):'今は選択できないよ'):(isRealBasic(c.name)?'タップして配置':'初期配置できるのはたねポケモンだけ');b.onclick=()=>s.placementDone?(benchOK?playRealBasicToBench(i):energyOK?selectRealEnergy(i):evolutionOK?selectRealEvolution(i):rodOK?openRealMaxRodSelection(i):stadiumOK?realPlayerPlayStadium(i):stampOK?openRealStampSelection(i):newGoodsOK?(c.name==='アンフェアスタンプ(ACE SPEC)'?openRealStampSelection(i):openRealNewGoodsSelection(i)):selectRealSupport(i)):placeRealBasic(i);hand.append(b)});
- const show=(root,c,energies,location,index)=>{const b=document.createElement('button');b.type='button';b.className='card';b.textContent=c.name+' / 超エネルギー '+energies.length+'枚 / 進化元 '+(location==='active'?s.activeStack.length:s.benchStacks[index].length)+'枚';realAppendHp(b,c,location==='active'?s.damage:(s.benchDamage[index]||0));const retreatOK=location==='bench'&&canFinishRealRetreat(s,index);const enabled=retreatOK||canAttachRealEnergy(s)||canEvolveRealAt(s,location,index);b.disabled=location==='active'?false:!enabled;b.title=retreatOK?'にげる：このポケモンをバトル場へ':canEvolveRealAt(s,location,index)?'選択中のポケモンに進化':canAttachRealEnergy(s)?'選択した超エネルギーを付ける':'エネルギーまたは進化ポケモンを選んでね';b.onclick=()=>location==='active'?openRealAttackModal():retreatOK?openRealRetreatPayment(index):canEvolveRealAt(s,location,index)?evolveRealAt(location,index):attachRealEnergy(location,index);root.append(b);if(location==='active'&&realCanKangaskhanDash(s)){const dash=document.createElement('button');dash.type='button';dash.className='card';dash.textContent='🦘 メガガルーラex：特性「おつかいダッシュ」を使う';dash.onclick=realUseKangaskhanDash;root.append(dash);}if(realCanFezAbility(s,'player',c)){const fez=document.createElement('button');fez.type='button';fez.className='card';fez.textContent='🐦 キチキギスex：特性「さかてにとる」を使う';fez.onclick=()=>realUseFezAbility(c);root.append(fez);}if(realCanUseAroma(s,c)){const ability=document.createElement('button');ability.type='button';ability.className='card';ability.textContent='🌸 '+c.name+'：特性「かおりあつめ」を使う';ability.onclick=()=>openRealAromaSelection(c);root.append(ability);}};
+ s.hand.forEach((c,i)=>{const b=document.createElement('button');b.className='card';b.type='button';const energyOK=canSelectRealEnergy(s,c),benchOK=canPlayRealBasicToBench(s,c),evolutionOK=canSelectRealEvolution(s,c),supportOK=canSelectRealSupport(s,c),rodOK=canUseRealMaxRod(s,c),newGoodsOK=canUseRealNewGoods(s,c),stampOK=canUseRealStamp(s,c),stadiumOK=realStadiumCanPlay(s,'player',c),gearOK=realCanUseGear(s,c),helmetOK=realCanAttachHelmet(s,c);b.textContent=c.name+(realLavaHalf(c)?'（'+realLavaHalf(c)+'）':'')+(isRealBasic(c.name)?' 🌱':'')+(s.selectedEnergyIndex===i||s.selectedEvolutionIndex===i||s.selectedSupportIndex===i?' ✅ 選択中':'')+' / '+({pokemon:'ポケモン',goods:'グッズ',support:'サポート',stadium:'スタジアム',energy:'エネルギー',tool:'ポケモンのどうぐ'}[c.category]||'種類未登録');b.disabled=s.placementDone?!(energyOK||benchOK||evolutionOK||supportOK||rodOK||newGoodsOK||stampOK||stadiumOK||gearOK||helmetOK):!isRealBasic(c.name)||!!s.active&&s.bench.length>=5;if(c.category==='support'&&!supportOK){const reason=realSupportBlockReason(s,c);b.textContent+=' / ⛔ '+reason;}if(isRealAttachableEnergy(c)&&!energyOK){b.textContent+=' / ⛔ '+realEnergyBlockReason(s,c);}b.title=s.placementDone?(benchOK?'タップしてベンチに出す':energyOK?'タップして手張り先を選択':evolutionOK?'進化先を選択':supportOK?'サポートを選択':rodOK?'つりざおMAXを使用':newGoodsOK?'グッズを使用':stampOK?'アンフェアスタンプを使用':stadiumOK?'スタジアムを出す':gearOK?'ポケギア3.0を使用':helmetOK?'ラッキーメットを装備':c.category==='support'?realSupportBlockReason(s,c):'今は選択できないよ'):(isRealBasic(c.name)?'タップして配置':'初期配置できるのはたねポケモンだけ');b.onclick=()=>s.placementDone?(benchOK?playRealBasicToBench(i):energyOK?selectRealEnergy(i):evolutionOK?selectRealEvolution(i):rodOK?openRealMaxRodSelection(i):stadiumOK?realPlayerPlayStadium(i):gearOK?openRealGearSelection(i):helmetOK?openRealHelmetSelection(i):stampOK?openRealStampSelection(i):newGoodsOK?(c.name==='アンフェアスタンプ(ACE SPEC)'?openRealStampSelection(i):openRealNewGoodsSelection(i)):selectRealSupport(i)):placeRealBasic(i);hand.append(b)});
+ const show=(root,c,energies,location,index)=>{const b=document.createElement('button');b.type='button';b.className='card';b.textContent=c.name+' / 超エネルギー '+energies.length+'枚 / 進化元 '+(location==='active'?s.activeStack.length:s.benchStacks[index].length)+'枚'+(realHelmetOf(c)?' / 🪖 ラッキーメット':'');realAppendHp(b,c,location==='active'?s.damage:(s.benchDamage[index]||0));const retreatOK=location==='bench'&&canFinishRealRetreat(s,index);const enabled=retreatOK||canAttachRealEnergy(s)||canEvolveRealAt(s,location,index);b.disabled=location==='active'?false:!enabled;b.title=retreatOK?'にげる：このポケモンをバトル場へ':canEvolveRealAt(s,location,index)?'選択中のポケモンに進化':canAttachRealEnergy(s)?'選択した超エネルギーを付ける':'エネルギーまたは進化ポケモンを選んでね';b.onclick=()=>location==='active'?openRealAttackModal():retreatOK?openRealRetreatPayment(index):canEvolveRealAt(s,location,index)?evolveRealAt(location,index):attachRealEnergy(location,index);root.append(b);if(location==='active'&&realCanKangaskhanDash(s)){const dash=document.createElement('button');dash.type='button';dash.className='card';dash.textContent='🦘 メガガルーラex：特性「おつかいダッシュ」を使う';dash.onclick=realUseKangaskhanDash;root.append(dash);}if(realCanFezAbility(s,'player',c)){const fez=document.createElement('button');fez.type='button';fez.className='card';fez.textContent='🐦 キチキギスex：特性「さかてにとる」を使う';fez.onclick=()=>realUseFezAbility(c);root.append(fez);}if(realCanUseAroma(s,c)){const ability=document.createElement('button');ability.type='button';ability.className='card';ability.textContent='🌸 '+c.name+'：特性「かおりあつめ」を使う';ability.onclick=()=>openRealAromaSelection(c);root.append(ability);}};
  if(s.active)show(active,s.active,s.activeEnergy,'active',0);else active.textContent=s.pendingPromotion?'🪑 交代先を選択中':'未配置';
  s.bench.forEach((c,i)=>show(bench,c,s.benchEnergy[i],'bench',i));if(!s.bench.length)bench.textContent='まだいないよ';
  renderCpuReal();renderRealTurn();renderRealAttackPrep();realRenderPromotion();
@@ -1483,7 +1536,7 @@ function canEvolveRealAt(s,location,index){
 function evolveRealAt(location,index){
  const s=realOpeningState;if(!canEvolveRealAt(s,location,index))return;
  const evo=s.hand.splice(s.selectedEvolutionIndex,1)[0];
- const old=location==='active'?s.active:s.bench[index];
+ const old=location==='active'?s.active:s.bench[index];realTransferHelmet(old,evo);
  if(location==='active'){s.activeStack.push(old);s.active=evo;s.activeEnteredTurn=s.playerTurns;}
  else{s.benchStacks[index].push(old);s.bench[index]=evo;s.benchEnteredTurns[index]=s.playerTurns;}
  s.selectedEvolutionIndex=null;s.selectedEnergyIndex=null;
@@ -2114,7 +2167,7 @@ document.getElementById('realAttackBackdrop').onclick=closeRealAttackModal;
 document.getElementById('realAttackModalDismiss').onclick=closeRealAttackModal;
 document.getElementById('realTraceCheck').onclick=()=>realTraceRecord('手動詳細診断');
 document.getElementById('realTraceClear').onclick=()=>{realTraceHistory.length=0;realCpuDecisionHistory.length=0;realTraceRender()};
-document.getElementById('realTraceCopy').onclick=async()=>{const txt='ちゃっぴーTCG β4.5.9.2 追跡ログ\n'+document.getElementById('realTraceOutput').textContent+'\n\n=== CPU判断履歴 ===\n'+realCpuDecisionHistory.join('\n')+'\n\n'+realStadiumAudit(realOpeningState);try{await navigator.clipboard.writeText(txt);alert('追跡ログをコピーしたよ')}catch(e){const t=document.createElement('textarea');t.value=txt;document.body.append(t);t.select();document.execCommand('copy');t.remove();alert('追跡ログのコピーを試みたよ')}};
+document.getElementById('realTraceCopy').onclick=async()=>{const txt='ちゃっぴーTCG β4.5.9.3 追跡ログ\n'+document.getElementById('realTraceOutput').textContent+'\n\n=== CPU判断履歴 ===\n'+realCpuDecisionHistory.join('\n')+'\n\n'+realStadiumAudit(realOpeningState);try{await navigator.clipboard.writeText(txt);alert('追跡ログをコピーしたよ')}catch(e){const t=document.createElement('textarea');t.value=txt;document.body.append(t);t.select();document.execCommand('copy');t.remove();alert('追跡ログのコピーを試みたよ')}};
 // β4.5.9.2: プレイヤー判断研究用の独立ログ。CPUの非公開手札・山札順は一切保存しない。
 const realPlayerReviewHistory=[];
 let realPlayerReviewSerial=0;
@@ -2149,7 +2202,7 @@ function realReviewRecord(action,before,after){
  realReviewCount();
 }
 function realReviewReport(){
- return ['ちゃっぴーTCG β4.5.9.2 プレイヤー判断ログ',
+ return ['ちゃっぴーTCG β4.5.9.3 プレイヤー判断ログ',
  '目的：対戦後に行動の意図を質問し、戦術とCPU判断を改善する。',
  'デッキ：自分＝'+(realDeckSwapped?'メガゴルーグex':'メガピクシーex')+' / CPU＝'+(realDeckSwapped?'メガピクシーex':'メガゴルーグex'),
  '結果：'+(realOpeningState?.gameOver||'対戦途中'),
@@ -2216,7 +2269,7 @@ function realCpuReportText(){
  const count=(word)=>decisions.filter(x=>x.includes(word)).length;
  const issues=inspectRealState(s);
  const outcome=s.gameOver==='player'?'自分の勝利':s.gameOver==='cpu'?'CPUの勝利':s.gameOver?'終了（'+s.gameOver+'）':'対戦中';
- return ['ちゃっぴーTCG β4.5.9.2 CPU対戦診断レポート',
+ return ['ちゃっぴーTCG β4.5.9.3 CPU対戦診断レポート',
  '結果：'+outcome,'経過：自分 '+(s.playerTurns||0)+'番 / CPU '+(s.cpuTurns||0)+'番',
  'サイド残数：自分 '+(s.prizes?.length??'?')+' / CPU '+(s.cpuReal?.prizes?.length??'?'),
  'カード総数：自分 '+realPlacementCount(s)+' / CPU '+cpuRealCount(s.cpuReal),
@@ -2256,7 +2309,7 @@ document.getElementById('realRegression').onclick=()=>{realRegressionRunning=tru
 document.getElementById('realRegressionCopy').onclick=async()=>{
  const report=document.getElementById('realDiagnosticResult').textContent||'';
  if(!report.includes('実カード自動テスト：')){alert('先に「実カード自動テスト」を実行してね');return;}
- const txt='ちゃっぴーTCG β4.5.9.2\n'+report;
+ const txt='ちゃっぴーTCG β4.5.9.3\n'+report;
  try{if(!navigator.clipboard?.writeText)throw Error('clipboard unavailable');await navigator.clipboard.writeText(txt);alert('自動テスト結果をコピーしたよ！');return;}catch(e){}
  const field=document.createElement('textarea');field.value=txt;field.style.cssText='position:fixed;left:8px;top:8px;width:90vw;height:40vh;z-index:10000;';document.body.appendChild(field);field.focus();field.select();
  let copied=false;try{copied=document.execCommand('copy')}catch(e){}
@@ -2301,7 +2354,7 @@ function cpuRealEvolve(c,logs){
   if(!old||entered>=c.turns)continue;
   const index=c.hand.findIndex(card=>card.category==='pokemon'&&cpuEvolutionRules.get(card.name)===old.name);
   if(index<0)continue;
-  const next=c.hand.splice(index,1)[0];
+  const next=c.hand.splice(index,1)[0];realTransferHelmet(old,next);
   if(active){c.activeStack.push(old);c.active=next;c.activeEnteredTurn=c.turns;}
   else{c.benchStacks[t.index].push(old);c.bench[t.index]=next;c.benchEnteredTurns[t.index]=c.turns;}
   logs.push('🤖 '+(active?'バトル場':'ベンチ'+(t.index+1))+'の'+old.name+'を'+next.name+'に進化させた（エネルギー引き継ぎ）');
@@ -2458,7 +2511,7 @@ function realRenderPromotion(){
 function realPlayerKnockout(s){
  if(s.turnSide==='cpu')s.stampEligible=true;
  const def=realCardDefinition(s.active),name=s.active.name;
- s.trash.push(s.active,...s.activeStack,...s.activeEnergy);
+ realDiscardHelmet(s,s.active);s.trash.push(s.active,...s.activeStack,...s.activeEnergy);
  s.active=null;s.activeStack=[];s.activeEnergy=[];s.damage=0;
  const count=realCpuTakePrizes(s,def?.prizes||1);
  s.turnLog.unshift('🤖 '+name+'がきぜつ！ CPUがサイド'+count+'枚取得（CPU残り'+s.cpuReal.prizes.length+'枚）');
@@ -2509,7 +2562,7 @@ function realCpuAttack(s){
   damage=resolved.damage;coinNote=resolved.coinNote;
   if(resolved.toss)realCpuDecisionLog('攻撃コイントス｜'+attack.name+'｜'+resolved.toss.results.join('→')+'｜合計'+damage+'ダメージ');
  }
- s.damage=(s.damage||0)+damage;
+ s.damage=(s.damage||0)+damage;realHelmetOnDamage(s,'player',damage,s.active);
  s.turnLog.unshift('🤖⚔️ '+c.active.name+'の「'+attack.name+'」！ '+damage+'ダメージ（自分累計'+s.damage+'）'+coinNote+(mode==='baseOnly'&&!realAttackSpecialMode(attack)?' ⚠️ 基本ダメージのみ・特殊効果未実装（検証用）':''));
  realApplyPostAttackEffect(s,attack,c);
  if(mode==='returnSelfToHand')realReturnAttackUserToHand(s,'cpu');
@@ -2667,15 +2720,30 @@ function cpuRealUseSupportChoices(c,logs){
  }
  realCpuDecisionLog('ギリー・フウとランの修行未使用｜'+(c.supportUsedThisTurn?'サポート使用済み':'対象・山札または手札条件を満たさない'));return false;
 }
+function cpuRealUseGear(c,logs){
+ const i=c.hand.findIndex(x=>x.name==='ポケギア3.0');
+ if(i<0||!c.deck.length||c.hand.some(x=>x.category==='support')||realOpeningState?.cpuGoodsBlockedUntil>=c.turns)return false;
+ const top=c.deck.slice(-7),picked=top.findLastIndex(x=>x.category==='support');
+ c.trash.push(c.hand.splice(i,1)[0]);
+ if(picked>=0)c.hand.push(c.deck.splice(c.deck.length-top.length+picked,1)[0]);
+ c.deck=shuffle(c.deck);logs.push('🤖 ポケギア3.0：上から'+top.length+'枚を確認'+(picked>=0?'、サポート1枚を確保':''));return true;
+}
+function cpuRealAttachHelmet(c,logs){
+ const i=c.hand.findIndex(x=>x.name==='ラッキーメット');
+ if(i<0||!c.active||realHelmetOf(c.active))return false;
+ realLuckyHelmets.set(c.active,c.hand.splice(i,1)[0]);logs.push('🤖 🪖 '+c.active.name+'にラッキーメットを装備');return true;
+}
 function cpuRealTakeActions(c,logs){
  if(!c||c.deckOut)return;
  if(!realRegressionRunning&&realOpeningState?.cpuReal===c&&realOpeningState.gameOver)return;
  cpuRealDeploy(c,logs);
+ cpuRealAttachHelmet(c,logs);
  cpuRealKangaskhanDash(c,logs);
  if(!realRegressionRunning&&realOpeningState?.cpuReal===c)cpuRealUseFezAbility(realOpeningState,logs);
  if(!realRegressionRunning&&realOpeningState?.cpuReal===c&&realCpuPlayStadium(realOpeningState))logs.push('🤖🏟️ スタジアムを配置');
  if(!realRegressionRunning&&realOpeningState?.cpuReal===c)realCpuGardenUse(realOpeningState,logs);
  const goodsBlocked=!!realOpeningState&&realOpeningState.cpuReal===c&&realOpeningState.cpuGoodsBlockedUntil>=c.turns;
+ if(!goodsBlocked)cpuRealUseGear(c,logs);
  const signalUsed=!goodsBlocked&&cpuRealUseMegaSignal(c,logs);
  const ballReason=goodsBlocked?'むずむずかふんでグッズ使用不可':signalUsed?'メガシグナルで進化先を取得済み':cpuRealUltraBallReason(c);
  if(goodsBlocked||signalUsed||!cpuRealUseUltraBall(c,logs))realCpuDecisionLog('ハイパーボール未使用｜'+ballReason);
